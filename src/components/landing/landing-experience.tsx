@@ -303,31 +303,31 @@ function GuideBanner({ step }: { step: FlowStep }) {
         return {
           badge: "01 · PREPARACIÓN",
           title: "Inicia la carga de tu perfil profesional",
-          glowColor: "rgba(139, 92, 246, 0.4)", // violet
+          glowColor: "139, 92, 246", // violet
         };
       case "uploading":
         return {
           badge: "02 · PARSING DE DATOS",
           title: "Extrayendo la estructura laboral...",
-          glowColor: "rgba(236, 72, 153, 0.4)", // fuchsia
+          glowColor: "236, 72, 153", // fuchsia
         };
       case "ready":
         return {
           badge: "03 · ESTRUCTURA COMPLETADA",
           title: "Currículum digitalizado y verificado",
-          glowColor: "rgba(16, 185, 129, 0.4)", // emerald
+          glowColor: "16, 185, 129", // emerald
         };
       case "loading":
         return {
           badge: "04 · PROCESAMIENTO IA",
           title: "Consultando modelos Gemini...",
-          glowColor: "rgba(245, 158, 11, 0.4)", // amber
+          glowColor: "245, 158, 11", // amber
         };
       case "analysis":
         return {
           badge: "05 · DIAGNÓSTICO FINAL",
           title: "¡Resultados del informe estratégico listos!",
-          glowColor: "rgba(234, 179, 8, 0.4)", // yellow
+          glowColor: "234, 179, 8", // yellow
         };
       default:
         return null;
@@ -355,7 +355,7 @@ function GuideBanner({ step }: { step: FlowStep }) {
         <h2 
           className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white transition-all duration-300 animate-pulse pb-1"
           style={{ 
-            textShadow: `0 0 20px ${content.glowColor}, 0 0 40px ${content.glowColor}` 
+            textShadow: `0 0 12px rgba(${content.glowColor}, 0.22), 0 0 24px rgba(${content.glowColor}, 0.08)` 
           }}
         >
           {content.title}
