@@ -280,13 +280,7 @@ function FlowHeader({ current }: { current: FlowStep }) {
   const activeIndex = current === "upload" || current === "ready" ? 0 : current === "loading" ? 1 : 2;
 
   return (
-    <div className="flex flex-col gap-5 border-b border-white/10 pb-5 lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-violet-200">CV Intelligence</p>
-        <p className="mt-2 max-w-xl text-base leading-7 text-white/58">
-          Upload the CV, let Fabra read it, then open the analysis.
-        </p>
-      </div>
+    <div className="flex justify-center border-b border-white/10 pb-6 mb-8">
       <div className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-1">
         {stepper.map((item, index) => (
           <div
@@ -308,12 +302,7 @@ function UploadExperience({ step, onAnalyze }: { step: FlowStep; onAnalyze: () =
   const ready = step === "ready";
 
   return (
-    <div className="grid min-h-[620px] gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
-      <div className="max-w-md">
-        <p className="text-lg leading-8 text-white/64">
-          Start with the document you already have. Fabra reads it as a structured career profile before the analysis begins.
-        </p>
-      </div>
+    <div className="w-full">
       <div className="relative">
         <div className="absolute inset-8 -z-10 rounded-[2.5rem] bg-violet-500/16 blur-3xl" />
         <div className="glass relative overflow-hidden rounded-[2rem] p-5 sm:p-6">
