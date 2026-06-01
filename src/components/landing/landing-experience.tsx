@@ -101,7 +101,7 @@ export function LandingExperience() {
 
   const analyze = () => {
     setStep("loading");
-    window.setTimeout(() => setStep("analysis"), 950);
+    window.setTimeout(() => setStep("analysis"), 3800);
   };
 
   const reset = () => {
@@ -119,7 +119,7 @@ export function LandingExperience() {
     } else if (tabKey === "analysis") {
       if (step === "ready" || step === "analysis") {
         setStep("loading");
-        window.setTimeout(() => setStep("analysis"), 950);
+        window.setTimeout(() => setStep("analysis"), 3800);
       }
     } else if (tabKey === "insights") {
       if (step === "ready" || step === "loading" || step === "analysis") {
@@ -277,6 +277,17 @@ export function LandingExperience() {
               >
                 <AnalysisExperience onReset={reset} />
               </motion.div>
+            ) : step === "loading" ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.42 }}
+                className="mt-10"
+              >
+                <LoadingExperience />
+              </motion.div>
             ) : (
               <motion.div
                 key="upload"
@@ -301,32 +312,32 @@ function GuideBanner({ step }: { step: FlowStep }) {
     switch (step) {
       case "idle":
         return {
-          badge: "01 · PREPARACIÓN",
-          title: "Inicia la carga de tu perfil profesional",
+          badge: "01 · SANDBOX SIMULATION",
+          title: "Simulate loading a sample profile",
           glowColor: "139, 92, 246", // violet
         };
       case "uploading":
         return {
-          badge: "02 · PARSING DE DATOS",
-          title: "Extrayendo la estructura laboral...",
+          badge: "02 · PARSING DATA",
+          title: "Extracting career history...",
           glowColor: "236, 72, 153", // fuchsia
         };
       case "ready":
         return {
-          badge: "03 · ESTRUCTURA COMPLETADA",
-          title: "Currículum digitalizado y verificado",
+          badge: "03 · PARSE COMPLETE",
+          title: "CV successfully parsed into workspace",
           glowColor: "16, 185, 129", // emerald
         };
       case "loading":
         return {
-          badge: "04 · PROCESAMIENTO IA",
-          title: "Consultando modelos Gemini...",
+          badge: "04 · AI EVALUATION",
+          title: "Running Gemini AI analysis...",
           glowColor: "245, 158, 11", // amber
         };
       case "analysis":
         return {
-          badge: "05 · DIAGNÓSTICO FINAL",
-          title: "¡Resultados del informe estratégico listos!",
+          badge: "05 · FINAL DIAGNOSIS",
+          title: "Strategic diagnostic report generated!",
           glowColor: "234, 179, 8", // yellow
         };
       default:
@@ -362,6 +373,81 @@ function GuideBanner({ step }: { step: FlowStep }) {
         </h2>
       </div>
     </motion.div>
+  );
+}
+
+function LoadingExperience() {
+  const [logIndex, setLogIndex] = useState(0);
+  const logs = [
+    "Reading PDF document structure...",
+    "Extracting metadata & career checkpoints...",
+    "Benchmarking technical skills against industry standards...",
+    "Scanning keyword alignment and coverage...",
+    "Consulting Gemini models for strategic analysis...",
+    "Assembling recommendations & finishing diagnostic report...",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLogIndex((prev) => (prev < logs.length - 1 ? prev + 1 : prev));
+    }, 600);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full max-w-xl mx-auto py-12 flex flex-col items-center justify-center text-center relative select-none">
+      <div className="absolute inset-0 -z-10 rounded-[3rem] bg-violet-500/[0.03] blur-3xl pointer-events-none" />
+      
+      {/* Círculo de Carga Inteligente de la Guía */}
+      <div className="relative size-32 mb-8 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 rounded-full border border-dashed border-violet-500/20"
+        />
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-3 rounded-full border border-dashed border-fuchsia-500/15"
+        />
+        <div className="absolute size-20 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 blur-xl opacity-30 animate-pulse animate-duration-1000" />
+        <div className="relative size-16 rounded-full bg-[#090a10] border border-white/10 flex items-center justify-center shadow-2xl">
+          <Loader2 className="size-8 text-violet-400 animate-spin" />
+        </div>
+      </div>
+
+      <div className="space-y-4 w-full">
+        <span className="w-fit text-[10px] font-black uppercase tracking-[0.24em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+          AI Diagnostic in Progress
+        </span>
+        
+        {/* Log dinámico de tareas */}
+        <div className="h-10 flex items-center justify-center overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={logIndex}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="text-sm font-semibold text-white/80 tracking-wide"
+            >
+              {logs[logIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* Barra de progreso de carga */}
+        <div className="h-1.5 w-full max-w-[280px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
+          <motion.div
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 3.8, ease: "easeInOut" }}
+            className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500"
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -479,12 +565,12 @@ function UploadExperience({
           
           <div className="mb-6 w-full flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <p className="text-sm font-semibold text-white">CV cargado con éxito</p>
+              <p className="text-sm font-semibold text-white">CV successfully uploaded</p>
               <p className="text-xs text-white/42">jonathandelasen cv.pdf</p>
             </div>
             <span className="rounded-full border border-emerald-500/20 bg-emerald-500/12 px-3.5 py-1 text-xs font-semibold text-emerald-300 flex items-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.12)]">
               <Check className="size-3.5" />
-              Listo
+              Ready
             </span>
           </div>
 
@@ -503,7 +589,7 @@ function UploadExperience({
               onClick={onAnalyze}
               className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-violet-600 px-12 text-base font-bold text-white shadow-[0_20px_50px_rgba(124,58,237,0.38)] transition hover:bg-violet-500 hover:scale-[1.03] active:scale-[0.97]"
             >
-              Analizar perfil con IA
+              Analyze profile with AI
               <Sparkles className="size-5" />
             </button>
           </motion.div>
@@ -529,7 +615,7 @@ function UploadExperience({
             onClick={onStartUpload}
             className="mt-8 w-full inline-flex h-12 items-center justify-center gap-2 rounded-full bg-violet-600 px-6 text-sm font-bold text-white shadow-[0_12px_40px_rgba(124,58,237,0.3)] transition hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98]"
           >
-            Empezar flujo de subida
+            Simulate PDF CV upload
             <ArrowRight className="size-4 animate-pulse" />
           </button>
         )}
@@ -551,8 +637,11 @@ function UploadDropzone({ ready, uploading }: { ready: boolean; uploading: boole
         className="relative grid size-28 place-items-center rounded-3xl border border-white/14 bg-white/[0.07] shadow-2xl"
       >
         <FileText className="size-12 text-violet-100" />
-        <span className="absolute -right-3 -top-3 rounded-full bg-violet-500 px-2 py-1 text-[10px] font-black text-white">
+        <span className="absolute -right-3 -top-3 rounded-full bg-violet-500 px-2 py-1 text-[10px] font-black text-white shadow-md shadow-violet-500/20">
           PDF
+        </span>
+        <span className="absolute -left-3 -top-3 rounded-full bg-fuchsia-500 px-2 py-1 text-[10px] font-black text-white shadow-md shadow-fuchsia-500/20">
+          JSON
         </span>
       </motion.div>
       <div className="mt-9 h-1.5 w-full max-w-[260px] rounded-full bg-white/10 overflow-hidden">
@@ -564,12 +653,12 @@ function UploadDropzone({ ready, uploading }: { ready: boolean; uploading: boole
         />
       </div>
       <p className="mt-6 text-sm font-semibold text-white">
-        {uploading ? "Cargando CV de Jonathan..." : "Documento listo para cargar"}
+        {uploading ? "Uploading Jonathan's CV..." : "Demo document ready"}
       </p>
       <p className="mt-2 max-w-xs text-xs leading-5 text-white/42">
         {uploading
-          ? "Extrayendo metadatos y perfilando trayectoria..."
-          : "Haz clic abajo para iniciar la carga simulada."}
+          ? "Extracting metadata and profiling career..."
+          : "Click below to run the sandbox upload."}
       </p>
     </div>
   );
