@@ -36,17 +36,29 @@ export const profile = {
 };
 
 export const cvAnalysis = {
-  score: 78,
+  score: 64,
   strengths: [
     "Scalable systems and high-traffic product experience.",
     "Strong end-to-end ownership from discovery to monitoring.",
     "Clear AI-assisted engineering narrative.",
   ],
   improvements: [
-    "Make AI product impact more measurable.",
-    "Separate leadership scope from implementation details.",
-    "Move technical skills closer to the top for AI platform roles.",
-    "Reframe founder experience as product strategy and iteration.",
+    {
+      title: "Quantify AI product impact",
+      description: "Anchor your AI integrations at Edpuzzle to concrete business results. Highlight user adoption metrics, latency reductions, or developer productivity gains."
+    },
+    {
+      title: "Decouple leadership and execution",
+      description: "Clearly demarcate your high-level tech-lead strategy (e.g. Grupo Prisa workflows, scaling teams) from raw day-to-day coding activities to sound more executive-ready."
+    },
+    {
+      title: "Elevate technical skill visibility",
+      description: "For AI and platform-focused engineering roles, position core competencies (DDD, system design, event-driven architectures) higher up on the first page."
+    },
+    {
+      title: "Reframe founder & CTO experience",
+      description: "Translate your entrepreneurial history at Dezzai into high-leverage product strategy, iterative customer feedback loops, and architectural direction."
+    }
   ],
 };
 

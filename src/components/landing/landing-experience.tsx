@@ -24,8 +24,6 @@ const stepper = [
 ] as const;
 
 const keywords = [
-  "Senior Software Engineer",
-  "full-stack development",
   "backend expertise",
   "Node.js",
   "MongoDB",
@@ -36,39 +34,21 @@ const keywords = [
   "CQRS",
   "event-driven systems",
   "AI-first development",
-  "Claude Code",
-  "Codex",
-  "Gemini",
-  "high-traffic web applications",
-  "high-throughput services",
   "DataDog",
   "Express",
   "Redis",
-  "LMS integrations",
-  "LTI",
   "TypeScript",
   "Kotlin",
   "Swift",
   "Microservices",
-  "Sockets",
-  "Lean methodology",
   "Stripe",
-  "Apple In-App Purchases",
-  "Web Software Engineering",
   "Scalable Systems",
   "Frontend",
   "User Experience",
   "Developer Productivity",
   "product discovery",
-  "post-release tracking and monitoring",
   "system performance",
   "product health",
-  "code reviews",
-  "testing culture",
-  "internal demos",
-  "data science teams",
-  "CTO responsibilities",
-  "real-time features",
   "Android",
   "iOS",
   "mobile applications",
@@ -331,7 +311,7 @@ function GuideBanner({ step }: { step: FlowStep }) {
       case "loading":
         return {
           badge: "04 · AI EVALUATION",
-          title: "Running Gemini AI analysis...",
+          title: "Running AI analysis...",
           glowColor: "245, 158, 11", // amber
         };
       case "analysis":
@@ -383,7 +363,7 @@ function LoadingExperience() {
     "Extracting metadata & career checkpoints...",
     "Benchmarking technical skills against industry standards...",
     "Scanning keyword alignment and coverage...",
-    "Consulting Gemini models for strategic analysis...",
+    "Consulting models for strategic analysis...",
     "Assembling recommendations & finishing diagnostic report...",
   ];
 
@@ -746,19 +726,13 @@ function CVSection({ title, children, small = false }: { title: string; children
 
 function AnalysisExperience({ onReset }: { onReset: () => void }) {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {/* Resplandor ambiental de fondo */}
-      <div className="absolute inset-0 -z-10 rounded-[3rem] bg-gradient-to-tr from-violet-600/10 to-amber-500/5 blur-3xl pointer-events-none" />
+      <div className="absolute inset-0 -z-10 bg-radial from-violet-600/10 to-transparent blur-3xl pointer-events-none" />
       
-      <div className="relative rounded-[1.8rem] border border-white/10 bg-[#10131b] p-5 shadow-2xl">
+      <div className="space-y-10">
         <AnalysisHero onReset={onReset} />
-        <div className="mt-9 inline-flex rounded-2xl border border-white/10 bg-white/[0.035] p-1">
-          <div className="inline-flex items-center gap-2 rounded-xl bg-white/[0.06] px-4 py-3 text-sm font-bold text-white">
-            <Sparkles className="size-4" />
-            Summary
-          </div>
-        </div>
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-8 lg:grid-cols-2">
           <ImprovementPanel />
           <KeywordsPanel />
         </div>
@@ -769,45 +743,49 @@ function AnalysisExperience({ onReset }: { onReset: () => void }) {
 
 function AnalysisHero({ onReset }: { onReset: () => void }) {
   return (
-    <div className="rounded-[1.4rem] border border-amber-500/38 bg-amber-500/[0.11] p-6 sm:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-amber-500/18 pb-6 mb-6">
+    <div className="rounded-3xl border border-amber-500/18 bg-gradient-to-br from-amber-500/[0.12] via-amber-600/[0.03] to-transparent p-8 sm:p-10 shadow-[0_24px_80px_rgba(245,158,11,0.08)] relative overflow-hidden">
+      {/* Resplandor interior decorativo */}
+      <div className="absolute -right-20 -top-20 -z-10 size-96 rounded-full bg-radial from-amber-500/12 to-transparent blur-3xl pointer-events-none" />
+      
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-amber-500/18 pb-8 mb-8">
         <div>
-          <h3 className="text-2xl font-bold text-white">Jonathan de la Sen CV</h3>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-amber-400/40 bg-amber-400/12 px-3 py-1 text-xs font-bold text-amber-300">
+          <h3 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Jonathan de la Sen CV</h3>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-amber-400/40 bg-amber-400/12 px-3.5 py-1 text-xs font-bold text-amber-300">
               Improvable
             </span>
-            <span className="rounded-full border border-violet-300/30 bg-violet-300/12 px-3 py-1 text-xs font-bold text-violet-200">
+            <span className="rounded-full border border-violet-300/30 bg-violet-300/12 px-3.5 py-1 text-xs font-bold text-violet-200">
               General analysis
             </span>
           </div>
         </div>
-        <div className="flex items-baseline gap-1 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 shadow-[0_8px_30px_rgba(245,158,11,0.08)] w-fit shrink-0">
-          <span className="text-3xl font-black tracking-tight text-amber-300">65</span>
-          <span className="text-xs font-semibold text-amber-400/50">/100</span>
+        
+        {/* Marcador de puntuación circular premium y animado */}
+        <div className="relative flex items-center justify-center size-28 sm:size-32 rounded-full border border-amber-500/30 bg-[#090a10]/95 shadow-[0_0_50px_rgba(245,158,11,0.22)] shrink-0 group">
+          {/* Anillo de brillo exterior pulsante */}
+          <span className="absolute inset-0 rounded-full border border-amber-500/10 animate-ping opacity-75 pointer-events-none" />
+          {/* Anillo giratorio de guiones */}
+          <span className="absolute inset-2 rounded-full border border-dashed border-amber-500/20 animate-spin animate-duration-[20000ms]" />
+          {/* Segundo anillo concéntrico estático */}
+          <span className="absolute inset-4 rounded-full border border-dotted border-amber-500/10" />
+          <div className="flex items-baseline select-none z-10">
+            <span className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-b from-white via-amber-200 to-amber-400 bg-clip-text text-transparent filter drop-shadow-[0_2px_12px_rgba(245,158,11,0.35)]">
+              {cvAnalysis.score}
+            </span>
+          </div>
         </div>
       </div>
       
       <div>
-        <p className="max-w-5xl text-[15px] leading-7 text-white/62">
+        <p className="max-w-5xl text-base sm:text-lg leading-8 text-white/62">
           This CV presents exceptional content, highlighting solid experience and deep technical knowledge in software engineering.
           It is particularly strong in impact quantification, system performance and AI-assisted development. The next step is to
           clarify chronology, sharpen the summary and make the strongest signals easier for ATS and recruiters to scan.
         </p>
-        <div className="mt-5 flex flex-wrap items-center gap-2">
+        <div className="mt-8 flex flex-wrap items-center gap-2.5">
           <MetaPill>gemini-2.5-flash</MetaPill>
           <MetaPill>June 2, 2026 · 00:38</MetaPill>
           <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
-        </div>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-violet-400/28 bg-violet-500/15 px-3 py-2 text-xs font-bold text-violet-200">
-            <Download className="size-3.5" />
-            Export
-          </button>
-          <button onClick={onReset} className="inline-flex items-center gap-2 rounded-lg border border-rose-400/28 bg-rose-500/15 px-3 py-2 text-xs font-bold text-rose-200">
-            <Trash2 className="size-3.5" />
-            Restart
-          </button>
         </div>
       </div>
     </div>
@@ -830,16 +808,30 @@ function MetaPill({ children, accent = false }: { children: React.ReactNode; acc
 
 function ImprovementPanel() {
   return (
-    <section className="min-h-[520px] rounded-[1.35rem] border border-amber-500/38 bg-amber-500/[0.04] p-6">
-      <h4 className="mb-5 flex items-center gap-2 text-sm font-bold text-[#ffc107]">
-        <Star className="size-4" />
+    <section className="rounded-3xl border border-amber-500/15 bg-gradient-to-br from-amber-500/[0.05] via-transparent to-transparent p-8 sm:p-10 shadow-lg relative overflow-hidden">
+      <h4 className="mb-8 flex items-center gap-3 text-lg font-bold tracking-tight text-amber-400">
+        <span className="flex size-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300">
+          <Star className="size-5" />
+        </span>
         Areas to improve
       </h4>
-      <ul className="space-y-5 text-[15px] leading-6 text-white/72">
-        {cvAnalysis.improvements.map((item) => (
-          <li key={item} className="flex gap-3">
-            <ArrowRight className="mt-1 size-4 shrink-0 text-[#ffc107]" />
-            <span>{item}</span>
+      <ul className="space-y-6 text-[16px] md:text-[17px] font-medium leading-relaxed text-white/80">
+        {cvAnalysis.improvements.map((item, idx) => (
+          <li 
+            key={item.title} 
+            className="flex gap-4 p-4.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-amber-500/20 transition-all duration-300 group"
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs font-black text-amber-300 group-hover:scale-110 transition duration-300">
+              0{idx + 1}
+            </span>
+            <div className="flex flex-col gap-1.5 pt-0.5 select-none text-left">
+              <strong className="text-white group-hover:text-amber-300 transition duration-300 font-bold text-base sm:text-lg">
+                {item.title}
+              </strong>
+              <p className="text-sm leading-relaxed text-white/54 font-normal">
+                {item.description}
+              </p>
+            </div>
           </li>
         ))}
       </ul>
@@ -849,16 +841,18 @@ function ImprovementPanel() {
 
 function KeywordsPanel() {
   return (
-    <section className="min-h-[520px] rounded-[1.35rem] border border-white/12 bg-white/[0.055] p-6">
-      <h4 className="mb-5 flex items-center gap-2 text-sm font-bold text-emerald-300">
-        <Check className="size-4" />
+    <section className="rounded-3xl border border-white/8 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent p-8 sm:p-10 shadow-lg relative overflow-hidden">
+      <h4 className="mb-8 flex items-center gap-3 text-lg font-bold tracking-tight text-emerald-400">
+        <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-300">
+          <Check className="size-5" />
+        </span>
         Keywords found
       </h4>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {keywords.map((keyword) => (
           <span
             key={keyword}
-            className="rounded-lg border border-emerald-400/24 bg-emerald-400/12 px-3 py-2 text-xs font-medium text-emerald-200"
+            className="rounded-xl border border-white/8 bg-white/[0.03] hover:border-emerald-500/30 hover:bg-emerald-500/10 px-3.5 py-2.5 text-[13px] font-semibold text-white/80 hover:text-emerald-200 transition duration-300 cursor-default hover:-translate-y-0.5 shadow-sm"
           >
             {keyword}
           </span>
