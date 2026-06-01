@@ -747,14 +747,9 @@ function CVSection({ title, children, small = false }: { title: string; children
 function AnalysisExperience({ onReset }: { onReset: () => void }) {
   return (
     <div className="relative">
-      <motion.div
-        aria-hidden="true"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.18 }}
-        className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto max-w-3xl blur-sm"
-      >
-        <RealCVPreview small />
-      </motion.div>
+      {/* Resplandor ambiental de fondo */}
+      <div className="absolute inset-0 -z-10 rounded-[3rem] bg-gradient-to-tr from-violet-600/10 to-amber-500/5 blur-3xl pointer-events-none" />
+      
       <div className="relative rounded-[1.8rem] border border-white/10 bg-[#10131b] p-5 shadow-2xl">
         <AnalysisHero onReset={onReset} />
         <div className="mt-9 inline-flex rounded-2xl border border-white/10 bg-white/[0.035] p-1">
