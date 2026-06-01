@@ -80,6 +80,7 @@ const keywords = [
 export function LandingExperience() {
   const [step, setStep] = useState<FlowStep>("upload");
   const flowRef = useRef<HTMLElement | null>(null);
+  const isScrollingRef = useRef(false);
 
   useEffect(() => {
     if (step !== "upload") return;
@@ -108,12 +109,102 @@ export function LandingExperience() {
     flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  // Asistencia por JavaScript para scroll dirigido extremadamente fluido
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (isScrollingRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const deltaY = e.deltaY;
+      const currentScrollY = window.scrollY;
+      
+      if (!flowRef.current) return;
+      const flowOffsetTop = flowRef.current.offsetTop;
+      const inHero = currentScrollY < flowOffsetTop - 100;
+
+      if (deltaY > 0) {
+        if (inHero) {
+          e.preventDefault();
+          isScrollingRef.current = true;
+          flowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 800);
+        }
+      } else if (deltaY < 0) {
+        if (!inHero && window.scrollY <= flowOffsetTop + 10) {
+          e.preventDefault();
+          isScrollingRef.current = true;
+          const topElement = document.getElementById("top");
+          topElement?.scrollIntoView({ behavior: "smooth", block: "start" });
+          setTimeout(() => {
+            isScrollingRef.current = false;
+          }, 800);
+        }
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      (window as any).touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isScrollingRef.current) {
+        e.preventDefault();
+        return;
+      }
+
+      const touchStartY = (window as any).touchStartY || 0;
+      const touchEndY = e.touches[0].clientY;
+      const deltaY = touchStartY - touchEndY;
+      const currentScrollY = window.scrollY;
+      
+      if (!flowRef.current) return;
+      const flowOffsetTop = flowRef.current.offsetTop;
+      const inHero = currentScrollY < flowOffsetTop - 100;
+
+      if (Math.abs(deltaY) > 20) {
+        if (deltaY > 0) {
+          if (inHero) {
+            e.preventDefault();
+            isScrollingRef.current = true;
+            flowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => {
+              isScrollingRef.current = false;
+            }, 800);
+          }
+        } else {
+          if (!inHero && window.scrollY <= flowOffsetTop + 10) {
+            e.preventDefault();
+            isScrollingRef.current = true;
+            const topElement = document.getElementById("top");
+            topElement?.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => {
+              isScrollingRef.current = false;
+            }, 800);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
+  }, [step]);
+
   return (
     <main className="relative isolate min-h-screen overflow-hidden">
       <div className="noise" />
-      <Header onExplore={scrollToFlow} />
 
-      <section className="relative flex min-h-[100svh] items-center px-5 pt-24 sm:px-8 lg:px-12" id="top">
+      <section className="relative flex min-h-[100svh] items-center px-5 pt-24 sm:px-8 lg:px-12 snap-start snap-always" id="top">
         <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
         <div className="mx-auto w-full max-w-7xl">
           <motion.div
@@ -151,7 +242,7 @@ export function LandingExperience() {
         </div>
       </section>
 
-      <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12">
+      <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
           <FlowHeader current={step} />
           <AnimatePresence mode="wait">
@@ -182,28 +273,6 @@ export function LandingExperience() {
         </div>
       </section>
     </main>
-  );
-}
-
-function Header({ onExplore }: { onExplore: () => void }) {
-  return (
-    <header className="fixed left-0 right-0 top-0 z-40 px-5 py-4 sm:px-8 lg:px-12">
-      <nav className="mx-auto flex h-14 max-w-7xl items-center justify-between rounded-full border border-white/10 bg-[#090a10]/72 px-4 backdrop-blur-xl">
-        <a href="#top" className="text-sm font-black tracking-[0.24em] text-white">
-          FABRA
-        </a>
-        <button
-          type="button"
-          onClick={onExplore}
-          className="hidden text-sm font-semibold text-white/62 transition hover:text-white md:inline"
-        >
-          Explore
-        </button>
-        <a href={appUrl} className="rounded-full bg-white px-4 py-2 text-xs font-bold text-[#090a10]">
-          Start crafting
-        </a>
-      </nav>
-    </header>
   );
 }
 
@@ -409,10 +478,10 @@ function AnalysisExperience({ onReset }: { onReset: () => void }) {
 function AnalysisHero({ onReset }: { onReset: () => void }) {
   return (
     <div className="rounded-[1.4rem] border border-amber-500/38 bg-amber-500/[0.11] p-6 sm:p-8">
-      <div className="grid gap-7 lg:grid-cols-[130px_1fr]">
-        <ScoreCircle />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-amber-500/18 pb-6 mb-6">
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
+          <h3 className="text-2xl font-bold text-white">Jonathan de la Sen CV</h3>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-amber-400/40 bg-amber-400/12 px-3 py-1 text-xs font-bold text-amber-300">
               Improvable
             </span>
@@ -420,44 +489,33 @@ function AnalysisHero({ onReset }: { onReset: () => void }) {
               General analysis
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-white">Jonathan de la Sen CV</h3>
-          <p className="mt-3 max-w-5xl text-[15px] leading-7 text-white/62">
-            This CV presents exceptional content, highlighting solid experience and deep technical knowledge in software engineering.
-            It is particularly strong in impact quantification, system performance and AI-assisted development. The next step is to
-            clarify chronology, sharpen the summary and make the strongest signals easier for ATS and recruiters to scan.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <MetaPill>gemini-2.5-flash</MetaPill>
-            <MetaPill>June 2, 2026 · 00:38</MetaPill>
-            <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
-          </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <button className="inline-flex items-center gap-2 rounded-lg border border-violet-400/28 bg-violet-500/15 px-3 py-2 text-xs font-bold text-violet-200">
-              <Download className="size-3.5" />
-              Export
-            </button>
-            <button onClick={onReset} className="inline-flex items-center gap-2 rounded-lg border border-rose-400/28 bg-rose-500/15 px-3 py-2 text-xs font-bold text-rose-200">
-              <Trash2 className="size-3.5" />
-              Restart
-            </button>
-          </div>
+        </div>
+        <div className="flex items-baseline gap-1 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-2.5 shadow-[0_8px_30px_rgba(245,158,11,0.08)] w-fit shrink-0">
+          <span className="text-3xl font-black tracking-tight text-amber-300">65</span>
+          <span className="text-xs font-semibold text-amber-400/50">/100</span>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ScoreCircle() {
-  return (
-    <div className="relative grid size-28 place-items-center rounded-full bg-black/18">
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{ background: `conic-gradient(#ffc107 65%, rgba(255,255,255,0.08) 0)` }}
-      />
-      <div className="relative grid size-20 place-items-center rounded-full bg-[#2b2111] text-center">
-        <div>
-          <p className="text-4xl font-black text-[#ffc107]">65</p>
-          <p className="text-xs font-semibold text-white/48">/ 100</p>
+      
+      <div>
+        <p className="max-w-5xl text-[15px] leading-7 text-white/62">
+          This CV presents exceptional content, highlighting solid experience and deep technical knowledge in software engineering.
+          It is particularly strong in impact quantification, system performance and AI-assisted development. The next step is to
+          clarify chronology, sharpen the summary and make the strongest signals easier for ATS and recruiters to scan.
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          <MetaPill>gemini-2.5-flash</MetaPill>
+          <MetaPill>June 2, 2026 · 00:38</MetaPill>
+          <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <button className="inline-flex items-center gap-2 rounded-lg border border-violet-400/28 bg-violet-500/15 px-3 py-2 text-xs font-bold text-violet-200">
+            <Download className="size-3.5" />
+            Export
+          </button>
+          <button onClick={onReset} className="inline-flex items-center gap-2 rounded-lg border border-rose-400/28 bg-rose-500/15 px-3 py-2 text-xs font-bold text-rose-200">
+            <Trash2 className="size-3.5" />
+            Restart
+          </button>
         </div>
       </div>
     </div>
