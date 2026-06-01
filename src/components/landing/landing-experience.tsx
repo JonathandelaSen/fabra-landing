@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { appUrl, cvAnalysis, profile } from "@/lib/demo-data";
 
-type FlowStep = "upload" | "ready" | "loading" | "analysis";
+type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis";
 
 const stepper = [
   { key: "upload", label: "Upload CV" },
@@ -78,14 +78,14 @@ const keywords = [
 ];
 
 export function LandingExperience() {
-  const [step, setStep] = useState<FlowStep>("upload");
+  const [step, setStep] = useState<FlowStep>("idle");
   const flowRef = useRef<HTMLElement | null>(null);
   const isScrollingRef = useRef(false);
 
   useEffect(() => {
-    if (step !== "upload") return;
+    if (step !== "uploading") return;
 
-    const timer = window.setTimeout(() => setStep("ready"), 1200);
+    const timer = window.setTimeout(() => setStep("ready"), 1500);
     return () => window.clearTimeout(timer);
   }, [step]);
 
@@ -105,7 +105,7 @@ export function LandingExperience() {
   };
 
   const reset = () => {
-    setStep("upload");
+    setStep("idle");
     flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -245,6 +245,7 @@ export function LandingExperience() {
       <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
           <FlowHeader current={step} />
+          <GuideBanner step={step} />
           <AnimatePresence mode="wait">
             {step === "analysis" ? (
               <motion.div
@@ -266,7 +267,7 @@ export function LandingExperience() {
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-10"
               >
-                <UploadExperience step={step} onAnalyze={analyze} />
+                <UploadExperience step={step} onStartUpload={() => setStep("uploading")} onAnalyze={analyze} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -276,11 +277,80 @@ export function LandingExperience() {
   );
 }
 
-function FlowHeader({ current }: { current: FlowStep }) {
-  const activeIndex = current === "upload" || current === "ready" ? 0 : current === "loading" ? 1 : 2;
+function GuideBanner({ step }: { step: FlowStep }) {
+  const getGuideContent = () => {
+    switch (step) {
+      case "idle":
+        return {
+          badge: "01 · PREPARACIÓN",
+          title: "Inicia la carga de tu perfil profesional",
+          glowColor: "rgba(139, 92, 246, 0.4)", // violet
+        };
+      case "uploading":
+        return {
+          badge: "02 · PARSING DE DATOS",
+          title: "Extrayendo la estructura laboral...",
+          glowColor: "rgba(236, 72, 153, 0.4)", // fuchsia
+        };
+      case "ready":
+        return {
+          badge: "03 · ESTRUCTURA COMPLETADA",
+          title: "Currículum digitalizado y verificado",
+          glowColor: "rgba(16, 185, 129, 0.4)", // emerald
+        };
+      case "loading":
+        return {
+          badge: "04 · PROCESAMIENTO IA",
+          title: "Consultando modelos Gemini...",
+          glowColor: "rgba(245, 158, 11, 0.4)", // amber
+        };
+      case "analysis":
+        return {
+          badge: "05 · DIAGNÓSTICO FINAL",
+          title: "¡Resultados del informe estratégico listos!",
+          glowColor: "rgba(234, 179, 8, 0.4)", // yellow
+        };
+      default:
+        return null;
+    }
+  };
+
+  const content = getGuideContent();
+  if (!content) return null;
 
   return (
-    <div className="flex justify-center border-b border-white/10 pb-6 mb-8">
+    <motion.div
+      key={step}
+      initial={{ opacity: 0, scale: 0.98, y: -10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98, y: 10 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="relative text-center max-w-3xl mx-auto mb-8 mt-6 py-4 px-6 overflow-hidden select-none"
+    >
+      <div className="absolute inset-0 -z-10 bg-radial from-violet-500/[0.02] to-transparent blur-xl pointer-events-none" />
+      
+      <div className="flex flex-col items-center gap-2">
+        <span className="w-fit text-sm sm:text-base lg:text-lg font-black uppercase tracking-[0.32em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400 mb-1">
+          {content.badge}
+        </span>
+        <h2 
+          className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white transition-all duration-300 animate-pulse pb-1"
+          style={{ 
+            textShadow: `0 0 20px ${content.glowColor}, 0 0 40px ${content.glowColor}` 
+          }}
+        >
+          {content.title}
+        </h2>
+      </div>
+    </motion.div>
+  );
+}
+
+function FlowHeader({ current }: { current: FlowStep }) {
+  const activeIndex = current === "idle" || current === "uploading" || current === "ready" ? 0 : current === "loading" ? 1 : 2;
+
+  return (
+    <div className="flex justify-center border-b border-white/10 pb-6">
       <div className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-1">
         {stepper.map((item, index) => (
           <div
@@ -298,71 +368,99 @@ function FlowHeader({ current }: { current: FlowStep }) {
   );
 }
 
-function UploadExperience({ step, onAnalyze }: { step: FlowStep; onAnalyze: () => void }) {
+function UploadExperience({
+  step,
+  onStartUpload,
+  onAnalyze,
+}: {
+  step: FlowStep;
+  onStartUpload: () => void;
+  onAnalyze: () => void;
+}) {
   const ready = step === "ready";
 
-  return (
-    <div className="w-full">
-      <div className="relative">
-        <div className="absolute inset-8 -z-10 rounded-[2.5rem] bg-violet-500/16 blur-3xl" />
-        <div className="glass relative overflow-hidden rounded-[2rem] p-5 sm:p-6">
-          <div className="mb-6 flex items-center justify-between">
+  if (ready) {
+    return (
+      <div className="w-full max-w-[580px] mx-auto py-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98, y: 15 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
+          className="relative flex flex-col items-center w-full"
+        >
+          <div className="absolute inset-10 -z-10 rounded-[3rem] bg-violet-500/5 blur-3xl" />
+          
+          <div className="mb-6 w-full flex items-center justify-between border-b border-white/10 pb-4">
             <div>
-              <p className="text-sm font-semibold text-white">CV upload</p>
+              <p className="text-sm font-semibold text-white">CV cargado con éxito</p>
               <p className="text-xs text-white/42">jonathandelasen cv.pdf</p>
             </div>
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/54">
-              {ready ? "Ready" : "Uploading"}
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/12 px-3.5 py-1 text-xs font-semibold text-emerald-300 flex items-center gap-1.5 shadow-[0_4px_12px_rgba(16,185,129,0.12)]">
+              <Check className="size-3.5" />
+              Listo
             </span>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[0.54fr_1fr] xl:items-center">
-            <UploadDropzone ready={ready} />
-            <motion.div
-              initial={{ opacity: 0, x: 22 }}
-              animate={{ opacity: ready ? 1 : 0.28, x: ready ? 0 : 18 }}
-              transition={{ duration: 0.55, ease: "easeOut" }}
-              className="relative"
-            >
-              <RealCVPreview small />
-            </motion.div>
+          <div className="w-full max-w-[580px] rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
+            <RealCVPreview small={false} />
           </div>
 
-          <AnimatePresence>
-            {ready && (
-              <motion.div
-                initial={{ opacity: 0, y: 18 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 12 }}
-                className="mt-6 flex justify-end"
-              >
-                <button
-                  type="button"
-                  onClick={onAnalyze}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-violet-500 px-6 text-sm font-bold text-white shadow-[0_18px_50px_rgba(124,58,237,0.32)] transition hover:bg-violet-400"
-                >
-                  Analyze with Fabra
-                  <Sparkles className="size-4" />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mt-8 flex justify-center w-full"
+          >
+            <button
+              type="button"
+              onClick={onAnalyze}
+              className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-violet-600 px-12 text-base font-bold text-white shadow-[0_20px_50px_rgba(124,58,237,0.38)] transition hover:bg-violet-500 hover:scale-[1.03] active:scale-[0.97]"
+            >
+              Analizar perfil con IA
+              <Sparkles className="size-5" />
+            </button>
+          </motion.div>
+        </motion.div>
       </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xl mx-auto py-8">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative flex flex-col items-center w-full"
+      >
+        <div className="absolute inset-10 -z-10 rounded-[2.5rem] bg-violet-500/10 blur-3xl" />
+        
+        <UploadDropzone ready={false} uploading={step === "uploading"} />
+        
+        {step === "idle" && (
+          <button
+            type="button"
+            onClick={onStartUpload}
+            className="mt-8 w-full inline-flex h-12 items-center justify-center gap-2 rounded-full bg-violet-600 px-6 text-sm font-bold text-white shadow-[0_12px_40px_rgba(124,58,237,0.3)] transition hover:bg-violet-500 hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Empezar flujo de subida
+            <ArrowRight className="size-4 animate-pulse" />
+          </button>
+        )}
+      </motion.div>
     </div>
   );
 }
 
-function UploadDropzone({ ready }: { ready: boolean }) {
+function UploadDropzone({ ready, uploading }: { ready: boolean; uploading: boolean }) {
   return (
-    <div className="relative flex min-h-[340px] flex-col items-center justify-center overflow-hidden rounded-[1.6rem] border border-dashed border-white/18 bg-black/18 p-6 text-center">
+    <div className="relative flex min-h-[340px] w-full flex-col items-center justify-center overflow-hidden rounded-[1.6rem] border border-dashed border-white/18 bg-black/18 p-6 text-center">
       <motion.div
         animate={{
-          y: ready ? -72 : [0, -12, 0],
-          scale: ready ? 0.82 : 1,
-          rotate: ready ? -4 : 0,
+          y: uploading ? [0, -12, 0] : 0,
+          scale: 1,
+          rotate: 0,
         }}
-        transition={{ duration: ready ? 0.5 : 1.2, repeat: ready ? 0 : Infinity, ease: "easeInOut" }}
+        transition={{ duration: 1.2, repeat: uploading ? Infinity : 0, ease: "easeInOut" }}
         className="relative grid size-28 place-items-center rounded-3xl border border-white/14 bg-white/[0.07] shadow-2xl"
       >
         <FileText className="size-12 text-violet-100" />
@@ -370,15 +468,21 @@ function UploadDropzone({ ready }: { ready: boolean }) {
           PDF
         </span>
       </motion.div>
-      <motion.div
-        initial={false}
-        animate={{ width: ready ? "100%" : "42%" }}
-        transition={{ duration: 1.1, ease: "easeInOut" }}
-        className="mt-9 h-1.5 max-w-[260px] rounded-full bg-violet-400"
-      />
-      <p className="mt-6 text-sm font-semibold text-white">{ready ? "CV uploaded" : "Uploading Jonathan's CV"}</p>
+      <div className="mt-9 h-1.5 w-full max-w-[260px] rounded-full bg-white/10 overflow-hidden">
+        <motion.div
+          initial={{ width: "0%" }}
+          animate={{ width: uploading ? "100%" : "0%" }}
+          transition={{ duration: uploading ? 1.5 : 0, ease: "easeInOut" }}
+          className="h-full bg-violet-400"
+        />
+      </div>
+      <p className="mt-6 text-sm font-semibold text-white">
+        {uploading ? "Cargando CV de Jonathan..." : "Documento listo para cargar"}
+      </p>
       <p className="mt-2 max-w-xs text-xs leading-5 text-white/42">
-        {ready ? "The PDF is ready to be analyzed." : "Extracting the file into Fabra's workspace."}
+        {uploading
+          ? "Extrayendo metadatos y perfilando trayectoria..."
+          : "Haz clic abajo para iniciar la carga simulada."}
       </p>
     </div>
   );
@@ -386,52 +490,79 @@ function UploadDropzone({ ready }: { ready: boolean }) {
 
 function RealCVPreview({ small = false }: { small?: boolean }) {
   return (
-    <div className={`cv-paper mx-auto rounded-[0.35rem] ${small ? "max-h-[560px] max-w-[410px] overflow-hidden p-5" : "p-7"}`}>
-      <header>
-        <h3 className="text-[22px] font-medium tracking-wide text-slate-900">
+    <div
+      className={`cv-paper mx-auto rounded-lg shadow-2xl transition-all duration-300 ${
+        small
+          ? "max-h-[460px] max-w-[390px] overflow-hidden p-5 text-[10px]"
+          : "w-full max-w-[680px] p-10 sm:p-12 text-[12px] flex flex-col"
+      }`}
+    >
+      <header className={`${small ? "border-b border-slate-200 pb-2" : "border-b-2 border-slate-200 pb-4"}`}>
+        <h3 className={`${small ? "text-sm" : "text-[22px]"} font-medium tracking-wide text-slate-900`}>
           {profile.name} · {profile.role}
         </h3>
-        <div className="mt-4 space-y-1.5 text-[12px] font-semibold text-slate-800">
-          <p>@ {profile.email}</p>
-          <p>⌘ github.com/JonathandelaSen</p>
+        <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 ${small ? "text-[9px]" : "text-[12px]"} font-semibold text-slate-600`}>
+          <p>📧 {profile.email}</p>
+          <p>💻 github.com/JonathandelaSen</p>
         </div>
       </header>
-      <CVSection title="About me">
-        <p>
-          Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
-          Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
-          high-throughput services under real production load.
-        </p>
-        <p>
-          I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
-          experience, as well as system design, DDD, CQRS and event-driven systems.
-        </p>
-        <p>
-          At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
-          helping standardize tooling and improve engineering context for AI-assisted work.
-        </p>
-      </CVSection>
-      <CVSection title="Work experience">
-        <p>
-          <strong>Senior Software Engineer at Edpuzzle</strong>
-          <br />
-          <span className="text-slate-500">Sep 2024 - Present</span>
-        </p>
-        <ul className="mt-3 space-y-2 pl-4">
-          <li>Own features end-to-end for a platform with <strong>2M+ daily active users</strong>.</li>
-          <li>Develop and operate high throughput backend services using Node.js, Express, MongoDB and Redis.</li>
-          <li>Design monitoring pipelines and dashboards using DataDog.</li>
-        </ul>
-      </CVSection>
+      
+      <div className="flex-1 flex flex-col">
+        <CVSection title="About me" small={small}>
+          <p>
+            Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
+            Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
+            high-throughput services under real production load.
+          </p>
+          <p>
+            I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
+            experience, as well as system design, DDD, CQRS and event-driven systems.
+          </p>
+          <p>
+            At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
+            helping standardize tooling and improve engineering context for AI-assisted work.
+          </p>
+        </CVSection>
+
+        <CVSection title="Work experience" small={small}>
+          <div className="space-y-4">
+            <div>
+              <p className="flex justify-between font-bold text-slate-800">
+                <span>Senior Software Engineer at Edpuzzle</span>
+                <span className="text-slate-500 font-normal">Sep 2024 - Present</span>
+              </p>
+              <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
+                <li>Own features end-to-end for a platform with <strong>2M+ daily active users</strong>.</li>
+                <li>Develop and operate high throughput backend services using Node.js, Express, MongoDB and Redis.</li>
+                <li>Design monitoring pipelines and dashboards using DataDog.</li>
+              </ul>
+            </div>
+
+            <div>
+              <p className="flex justify-between font-bold text-slate-800">
+                <span>Tech Lead at Dezzai</span>
+                <span className="text-slate-500 font-normal">Sep 2020 - Present</span>
+              </p>
+              <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
+                <li>Collaborated with external partners such as <strong>Grupo Prisa (Colombia)</strong> to design digitizing workflows (EGMs).</li>
+                <li>Built and scaled a multidisciplinary engineering team, improving development practices.</li>
+                <li>Designed backend systems using event-driven architecture, DDD, and scalable data pipelines.</li>
+                <li>Coordinated closely with data science teams to integrate trained models.</li>
+                <li>Temporarily assumed <strong>CTO responsibilities</strong> during two extended leaves.</li>
+              </ul>
+            </div>
+          </div>
+        </CVSection>
+      </div>
     </div>
   );
 }
 
-function CVSection({ title, children }: { title: string; children: React.ReactNode }) {
+function CVSection({ title, children, small = false }: { title: string; children: React.ReactNode; small?: boolean }) {
   return (
-    <section className="mt-8 text-[12px] leading-[1.25] text-slate-800">
-      <h4 className="mb-3 text-[15px] font-black uppercase tracking-wide text-[#f25778]">{title}</h4>
-      <div className="space-y-3">{children}</div>
+    <section className={`${small ? "mt-4" : "mt-6"} text-slate-800 text-left`}>
+      <h4 className={`mb-1.5 font-black uppercase tracking-wide text-[#f25778] ${small ? "text-[11px]" : "text-[14px]"}`}>{title}</h4>
+      <div className={`${small ? "space-y-1.5 text-[9px] leading-relaxed" : "space-y-2 text-[12px] leading-relaxed"}`}>{children}</div>
     </section>
   );
 }
