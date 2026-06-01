@@ -395,11 +395,11 @@ function LoadingExperience() {
   }, []);
 
   return (
-    <div className="w-full max-w-xl mx-auto py-12 flex flex-col items-center justify-center text-center relative select-none">
+    <div className="w-full max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center relative select-none">
       <div className="absolute inset-0 -z-10 rounded-[3rem] bg-violet-500/[0.03] blur-3xl pointer-events-none" />
       
       {/* Círculo de Carga Inteligente de la Guía */}
-      <div className="relative size-32 mb-8 flex items-center justify-center">
+      <div className="relative size-44 mb-10 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -408,29 +408,29 @@ function LoadingExperience() {
         <motion.div
           animate={{ rotate: -360 }}
           transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-3 rounded-full border border-dashed border-fuchsia-500/15"
+          className="absolute inset-4 rounded-full border border-dashed border-fuchsia-500/15"
         />
-        <div className="absolute size-20 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 blur-xl opacity-30 animate-pulse animate-duration-1000" />
-        <div className="relative size-16 rounded-full bg-[#090a10] border border-white/10 flex items-center justify-center shadow-2xl">
-          <Loader2 className="size-8 text-violet-400 animate-spin" />
+        <div className="absolute size-28 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 blur-2xl opacity-35 animate-pulse animate-duration-1000" />
+        <div className="relative size-24 rounded-full bg-[#090a10] border border-white/10 flex items-center justify-center shadow-2xl">
+          <Loader2 className="size-10 text-violet-400 animate-spin" />
         </div>
       </div>
 
-      <div className="space-y-4 w-full">
-        <span className="w-fit text-[10px] font-black uppercase tracking-[0.24em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+      <div className="space-y-5 w-full">
+        <span className="w-fit text-xs font-black uppercase tracking-[0.28em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
           AI Diagnostic in Progress
         </span>
         
         {/* Log dinámico de tareas */}
-        <div className="h-10 flex items-center justify-center overflow-hidden">
+        <div className="h-14 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.p
               key={logIndex}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
-              className="text-sm font-semibold text-white/80 tracking-wide"
+              className="text-base sm:text-lg lg:text-xl font-bold tracking-wide text-white/90"
             >
               {logs[logIndex]}
             </motion.p>
@@ -438,7 +438,7 @@ function LoadingExperience() {
         </div>
 
         {/* Barra de progreso de carga */}
-        <div className="h-1.5 w-full max-w-[280px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
+        <div className="h-2 w-full max-w-[320px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
           <motion.div
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
@@ -450,6 +450,7 @@ function LoadingExperience() {
     </div>
   );
 }
+
 
 function FlowHeader({
   current,
