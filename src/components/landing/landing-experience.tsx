@@ -109,6 +109,25 @@ export function LandingExperience() {
     flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const handleTabClick = (tabKey: "upload" | "analysis" | "insights") => {
+    if (tabKey === "upload") {
+      if (step === "analysis" || step === "loading") {
+        setStep("ready");
+      } else {
+        setStep("idle");
+      }
+    } else if (tabKey === "analysis") {
+      if (step === "ready" || step === "analysis") {
+        setStep("loading");
+        window.setTimeout(() => setStep("analysis"), 950);
+      }
+    } else if (tabKey === "insights") {
+      if (step === "ready" || step === "loading" || step === "analysis") {
+        setStep("analysis");
+      }
+    }
+  };
+
   // Asistencia por JavaScript para scroll dirigido extremadamente fluido
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -244,7 +263,7 @@ export function LandingExperience() {
 
       <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
-          <FlowHeader current={step} />
+          <FlowHeader current={step} onTabClick={handleTabClick} />
           <GuideBanner step={step} />
           <AnimatePresence mode="wait">
             {step === "analysis" ? (
@@ -346,23 +365,91 @@ function GuideBanner({ step }: { step: FlowStep }) {
   );
 }
 
-function FlowHeader({ current }: { current: FlowStep }) {
+function FlowHeader({
+  current,
+  onTabClick,
+}: {
+  current: FlowStep;
+  onTabClick: (key: "upload" | "analysis" | "insights") => void;
+}) {
   const activeIndex = current === "idle" || current === "uploading" || current === "ready" ? 0 : current === "loading" ? 1 : 2;
+  const canNavigateToAnalysis = current !== "idle" && current !== "uploading";
 
   return (
-    <div className="flex justify-center border-b border-white/10 pb-6">
-      <div className="flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035] p-1">
-        {stepper.map((item, index) => (
-          <div
-            key={item.key}
-            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition sm:px-4 ${
-              index <= activeIndex ? "bg-violet-500 text-white" : "text-white/42"
-            }`}
-          >
-            <span>{index + 1}.</span>
-            <span>{item.label}</span>
-          </div>
-        ))}
+    <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-6">
+      <div className="relative flex items-center justify-between w-full px-8 py-4">
+        {/* Línea de progreso de fondo */}
+        <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-10 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-amber-400"
+            initial={false}
+            animate={{ width: activeIndex === 0 ? "0%" : activeIndex === 1 ? "50%" : "100%" }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          />
+        </div>
+
+        {stepper.map((item, index) => {
+          const isActive = index === activeIndex;
+          const isCompleted = index < activeIndex;
+          
+          let isClickable = false;
+          if (index === 0) isClickable = true;
+          if (index === 1) isClickable = canNavigateToAnalysis;
+          if (index === 2) isClickable = canNavigateToAnalysis;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              disabled={!isClickable}
+              onClick={() => onTabClick(item.key)}
+              className={`relative flex flex-col items-center gap-2 group transition-all duration-300 ${
+                isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-40"
+              }`}
+            >
+              {/* Nodo circular interactivo */}
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.15 : 1,
+                  boxShadow: isActive 
+                    ? "0 0 20px rgba(139, 92, 246, 0.4)" 
+                    : isCompleted 
+                    ? "0 0 10px rgba(16, 185, 129, 0.2)"
+                    : "0 0 0px rgba(0,0,0,0)"
+                }}
+                className={`relative flex size-9 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                  isActive 
+                    ? "bg-violet-600 border-violet-400 text-white" 
+                    : isCompleted 
+                    ? "bg-emerald-600 border-emerald-400 text-white" 
+                    : "bg-[#090a10] border-white/15 text-white/40 group-hover:border-white/30 group-hover:text-white/60"
+                }`}
+              >
+                {isCompleted ? (
+                  <Check className="size-4 stroke-[3]" />
+                ) : (
+                  <span className="text-xs font-black">{index + 1}</span>
+                )}
+
+                {/* Resplandor pulsante para nodo activo */}
+                {isActive && (
+                  <span className="absolute inset-0 rounded-full animate-ping bg-violet-400/20 pointer-events-none" />
+                )}
+              </motion.div>
+
+              {/* Etiqueta del paso */}
+              <span className={`text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${
+                isActive 
+                  ? "text-violet-300 scale-105" 
+                  : isCompleted 
+                  ? "text-emerald-300"
+                  : "text-white/38 group-hover:text-white/60"
+              }`}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
