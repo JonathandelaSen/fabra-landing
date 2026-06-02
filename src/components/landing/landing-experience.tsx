@@ -4,22 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
+  Briefcase,
   Check,
-  Download,
   ExternalLink,
   FileText,
   Loader2,
   Sparkles,
   Star,
+  Trophy,
 } from "lucide-react";
-import { appUrl, cvAnalysis, profile } from "@/lib/demo-data";
+import { appUrl, cvAnalysis, job, profile } from "@/lib/demo-data";
 
-type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis" | "templates" | "studio";
+type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis" | "templates" | "studio" | "completion";
 
 const stepper = [
   { key: "upload", label: "Upload CV" },
   { key: "analysis", label: "AI analysis" },
   { key: "studio", label: "Template Studio" },
+  { key: "match", label: "Job Match" },
 ] as const;
 
 const keywords = [
@@ -76,7 +78,7 @@ export function LandingExperience() {
   }, [step]);
 
   useEffect(() => {
-    if (step === "analysis" || step === "templates" || step === "studio") {
+    if (step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
       flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [step]);
@@ -97,22 +99,26 @@ export function LandingExperience() {
     setIsSuggestionsApplied(false);
   };
 
-  const handleTabClick = (tabKey: "upload" | "analysis" | "studio") => {
+  const handleTabClick = (tabKey: "upload" | "analysis" | "studio" | "match") => {
     resetStudioStates();
     if (tabKey === "upload") {
-      if (step === "analysis" || step === "loading" || step === "templates" || step === "studio") {
+      if (step === "analysis" || step === "loading" || step === "templates" || step === "studio" || step === "completion") {
         setStep("ready");
       } else {
         setStep("idle");
       }
     } else if (tabKey === "analysis") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio") {
+      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
         setStep("loading");
         window.setTimeout(() => setStep("analysis"), 3800);
       }
     } else if (tabKey === "studio") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio") {
+      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
         setStep("templates");
+      }
+    } else if (tabKey === "match") {
+      if (step === "completion") {
+        // Already at completion, do nothing
       }
     }
   };
@@ -296,6 +302,7 @@ export function LandingExperience() {
                     resetStudioStates();
                     setStep("templates");
                   }}
+                  onFinalize={() => setStep("completion")}
                   accentColor={accentColor}
                   setAccentColor={setAccentColor}
                   skillsPosition={skillsPosition}
@@ -304,6 +311,23 @@ export function LandingExperience() {
                   setIsSummaryCondensed={setIsSummaryCondensed}
                   isSuggestionsApplied={isSuggestionsApplied}
                   setIsSuggestionsApplied={setIsSuggestionsApplied}
+                />
+              </motion.div>
+            ) : step === "completion" ? (
+              <motion.div
+                key="completion"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <CompletionExperience
+                  template={selectedTemplate}
+                  accentColor={accentColor}
+                  skillsPosition={skillsPosition}
+                  isSummaryCondensed={isSummaryCondensed}
+                  isSuggestionsApplied={isSuggestionsApplied}
                 />
               </motion.div>
             ) : step === "loading" ? (
@@ -380,6 +404,12 @@ function GuideBanner({ step }: { step: FlowStep }) {
           badge: "07 · DYNAMIC TAILORING",
           title: "Use conversational prompts to polish your CV",
           glowColor: "168, 85, 247", // purple
+        };
+      case "completion":
+        return {
+          badge: "08 · CV READY",
+          title: "Your optimized CV is ready!",
+          glowColor: "16, 185, 129", // emerald
         };
       default:
         return null;
@@ -498,13 +528,15 @@ function FlowHeader({
   onTabClick,
 }: {
   current: FlowStep;
-  onTabClick: (key: "upload" | "analysis" | "studio") => void;
+  onTabClick: (key: "upload" | "analysis" | "studio" | "match") => void;
 }) {
   const activeIndex = 
     current === "idle" || current === "uploading" || current === "ready" ? 0 : 
     current === "loading" || current === "analysis" ? 1 : 
-    2;
+    current === "templates" || current === "studio" ? 2 :
+    3;
   const canNavigateToAnalysis = current !== "idle" && current !== "uploading";
+  const canNavigateToMatch = current === "completion";
 
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-6">
@@ -527,6 +559,7 @@ function FlowHeader({
           if (index === 0) isClickable = true;
           if (index === 1) isClickable = canNavigateToAnalysis;
           if (index === 2) isClickable = canNavigateToAnalysis;
+          if (index === 3) isClickable = canNavigateToMatch;
 
           return (
             <button
@@ -1354,6 +1387,7 @@ function TemplateSelectionView({
 function TemplateStudioView({
   template,
   onChangeTemplate,
+  onFinalize,
   accentColor,
   setAccentColor,
   skillsPosition,
@@ -1365,6 +1399,7 @@ function TemplateStudioView({
 }: {
   template: "linea" | "marco" | "pulso" | "filo";
   onChangeTemplate: () => void;
+  onFinalize: () => void;
   accentColor: "default" | "cool";
   setAccentColor: (c: "default" | "cool") => void;
   skillsPosition: "bottom" | "top";
@@ -1599,8 +1634,300 @@ function TemplateStudioView({
             small={false}
           />
         </div>
+
+        {/* Finalize CV button */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-6 flex justify-center"
+        >
+          <button
+            type="button"
+            onClick={onFinalize}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 px-8 text-sm font-black text-white shadow-[0_8px_24px_rgba(16,185,129,0.3)] hover:scale-[1.03] transition duration-300 cursor-pointer"
+          >
+            <Check className="size-4 stroke-[3]" />
+            Finalize CV
+          </button>
+        </motion.div>
       </div>
 
+    </div>
+  );
+}
+
+/* ─── Confetti Particle ─── */
+function ConfettiParticle({ delay, color, left }: { delay: number; color: string; left: string }) {
+  return (
+    <motion.div
+      initial={{ y: -20, x: 0, opacity: 1, rotate: 0, scale: 1 }}
+      animate={{
+        y: [0, 600],
+        x: [0, (Math.random() - 0.5) * 200],
+        rotate: [0, 360 + Math.random() * 360],
+        opacity: [1, 1, 0],
+        scale: [1, 0.6],
+      }}
+      transition={{
+        duration: 3 + Math.random() * 2,
+        delay,
+        ease: "easeOut",
+        repeat: Infinity,
+        repeatDelay: Math.random() * 3,
+      }}
+      className="absolute top-0 pointer-events-none"
+      style={{ left }}
+    >
+      <div
+        className="rounded-sm"
+        style={{
+          width: `${6 + Math.random() * 8}px`,
+          height: `${6 + Math.random() * 8}px`,
+          background: color,
+          transform: `rotate(${Math.random() * 45}deg)`,
+        }}
+      />
+    </motion.div>
+  );
+}
+
+/* ─── Completion Experience ─── */
+function CompletionExperience({
+  template,
+  accentColor,
+  skillsPosition,
+  isSummaryCondensed,
+  isSuggestionsApplied,
+}: {
+  template: "linea" | "marco" | "pulso" | "filo";
+  accentColor: "default" | "cool";
+  skillsPosition: "bottom" | "top";
+  isSummaryCondensed: boolean;
+  isSuggestionsApplied: boolean;
+}) {
+  const confettiColors = [
+    "#a855f7", "#6366f1", "#ec4899", "#f59e0b", "#10b981",
+    "#06b6d4", "#f43f5e", "#8b5cf6", "#22d3ee", "#fbbf24",
+  ];
+
+  const confettiParticles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    delay: Math.random() * 2,
+    color: confettiColors[i % confettiColors.length],
+    left: `${Math.random() * 100}%`,
+  }));
+
+  return (
+    <div className="relative w-full py-8 select-none">
+      {/* Confetti layer */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-0">
+        {confettiParticles.map((p) => (
+          <ConfettiParticle key={p.id} delay={p.delay} color={p.color} left={p.left} />
+        ))}
+      </div>
+
+      {/* Ambient glow */}
+      <div className="absolute inset-0 -z-10 bg-radial from-emerald-500/10 via-violet-500/5 to-transparent blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 flex flex-col items-center text-center">
+        {/* Celebration hero */}
+        <motion.div
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.1 }}
+          className="relative mb-8"
+        >
+          <div className="relative size-28 sm:size-32 rounded-full bg-gradient-to-br from-emerald-500/20 to-violet-500/20 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_60px_rgba(16,185,129,0.25)]">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Trophy className="size-14 sm:size-16 text-amber-400 drop-shadow-[0_4px_12px_rgba(245,158,11,0.4)]" />
+            </motion.div>
+            {/* Spinning ring */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-0 rounded-full border border-dashed border-emerald-500/20"
+            />
+          </div>
+
+          {/* Floating emojis */}
+          <motion.span
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, type: "spring" }}
+            className="absolute -top-2 -right-4 text-3xl"
+          >
+            🎉
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, type: "spring" }}
+            className="absolute -bottom-1 -left-5 text-2xl"
+          >
+            🎊
+          </motion.span>
+          <motion.span
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.9, type: "spring" }}
+            className="absolute top-0 -left-3 text-xl"
+          >
+            ✨
+          </motion.span>
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-3 mb-8"
+        >
+          <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
+            Your CV is ready!
+          </h3>
+          <p className="text-base sm:text-lg text-white/60 max-w-xl mx-auto leading-relaxed">
+            Congratulations! Your optimized CV has been tailored and polished. Now let&apos;s see how it stacks up against a real opportunity.
+          </p>
+        </motion.div>
+
+        {/* Mini CV preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="mb-10 w-full max-w-md"
+        >
+          <div className="rounded-2xl border border-white/10 bg-[#0c0d12]/60 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-sm">
+            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-white/8">
+              <div className="size-8 rounded-lg bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center">
+                <Check className="size-4 text-emerald-400 stroke-[3]" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-white">{profile.name}</p>
+                <p className="text-[10px] text-white/42">{template.toUpperCase()} Template · Optimized</p>
+              </div>
+              <span className="ml-auto rounded-full bg-emerald-500/12 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                Ready
+              </span>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-white/5">
+              <div className="flex justify-center items-start overflow-hidden" style={{ height: '180px' }}>
+                <div
+                  className="relative shrink-0 origin-top"
+                  style={{ width: '500px', transform: 'scale(0.35)', marginTop: '4px' }}
+                >
+                  <RealCVPreview
+                    template={template}
+                    accentColor={accentColor}
+                    skillsPosition={skillsPosition}
+                    isSummaryCondensed={isSummaryCondensed}
+                    isSuggestionsApplied={isSuggestionsApplied}
+                    small={false}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Divider arrow */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mb-8 flex flex-col items-center gap-2"
+        >
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/25">Next step</span>
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ArrowRight className="size-5 text-white/20 rotate-90" />
+          </motion.div>
+        </motion.div>
+
+        {/* Job match CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+          className="w-full max-w-2xl"
+        >
+          <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-600/15 via-indigo-600/10 to-cyan-600/5 p-8 sm:p-10 shadow-[0_24px_80px_rgba(124,58,237,0.12)] relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute -right-16 -top-16 size-64 bg-radial from-violet-500/10 to-transparent blur-3xl pointer-events-none" />
+            <div className="absolute -left-16 -bottom-16 size-64 bg-radial from-cyan-500/8 to-transparent blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="size-14 rounded-2xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center mb-5">
+                <Briefcase className="size-7 text-violet-400" />
+              </div>
+
+              <h4 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-2">
+                Compare against a job offer
+              </h4>
+              <p className="text-sm text-white/55 leading-relaxed max-w-md mb-6">
+                See how your optimized profile matches a real engineering role. AI will score your alignment, flag gaps, and suggest how to position your experience.
+              </p>
+
+              {/* Fake job card */}
+              <div className="w-full max-w-sm rounded-2xl border border-white/8 bg-white/[0.03] p-5 mb-6 text-left">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-bold text-white">{job.title}</p>
+                    <p className="text-xs text-white/50 mt-0.5">{job.company} · {job.location}</p>
+                  </div>
+                  <span className="rounded-lg bg-violet-500/12 border border-violet-500/20 px-2 py-1 text-[10px] font-black text-violet-300">
+                    NEW
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {job.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[10px] font-semibold text-white/60"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA button */}
+              <motion.button
+                type="button"
+                animate={{
+                  boxShadow: [
+                    "0 20px 50px rgba(124,58,237,0.25)",
+                    "0 24px 60px rgba(124,58,237,0.45)",
+                    "0 20px 50px rgba(124,58,237,0.25)",
+                  ],
+                }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 px-10 text-base font-black text-white transition hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+              >
+                <Sparkles className="size-5" />
+                Match my profile to this role
+                <motion.span
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <ArrowRight className="size-5" />
+                </motion.span>
+              </motion.button>
+
+              <p className="mt-4 text-[11px] text-white/30">
+                Powered by AI · Takes ~5 seconds
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
