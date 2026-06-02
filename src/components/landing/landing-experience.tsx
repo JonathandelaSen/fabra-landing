@@ -11,7 +11,6 @@ import {
   Loader2,
   Sparkles,
   Star,
-  Trash2,
 } from "lucide-react";
 import { appUrl, cvAnalysis, profile } from "@/lib/demo-data";
 
@@ -96,13 +95,6 @@ export function LandingExperience() {
     setSkillsPosition("bottom");
     setIsSummaryCondensed(false);
     setIsSuggestionsApplied(false);
-  };
-
-  const reset = () => {
-    setStep("idle");
-    setSelectedTemplate("pulso");
-    resetStudioStates();
-    flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleTabClick = (tabKey: "upload" | "analysis" | "studio") => {
@@ -272,7 +264,7 @@ export function LandingExperience() {
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-8"
               >
-                <AnalysisExperience onReset={reset} onImprove={() => setStep("templates")} />
+                <AnalysisExperience onImprove={() => setStep("templates")} />
               </motion.div>
             ) : step === "templates" ? (
               <motion.div
@@ -751,11 +743,11 @@ function RealCVPreview({
   };
 
   const getAccentBgClass = (t: string, col: "default" | "cool") => {
-    if (t === "linea") return "bg-[#f4f4f5] text-[#2d2d2d] border border-slate-200/50";
-    if (t === "marco") return "bg-[#f0ede6] text-[#2d2d2d]";
+    if (t === "linea") return col === "cool" ? "bg-blue-50 text-blue-900 border border-blue-100/50" : "bg-[#f4f4f5] text-[#2d2d2d] border border-slate-200/50";
+    if (t === "marco") return col === "cool" ? "bg-indigo-50 text-indigo-900" : "bg-[#f0ede6] text-[#2d2d2d]";
     if (t === "pulso") return col === "cool" ? "bg-violet-50 text-violet-700 border border-violet-100/50" : "bg-[#f0fdfa] text-[#0f766e] border border-teal-100/50";
     if (t === "filo") return col === "cool" ? "border border-[#06b6d4] text-[#27272a] bg-white rounded-none" : "border border-[#9f1239] text-[#27272a] bg-white rounded-none";
-    return "bg-slate-100";
+    return col === "cool" ? "bg-violet-50 text-violet-700" : "bg-slate-100";
   };
 
   const sectionIds = skillsPosition === "top" 
@@ -1060,38 +1052,15 @@ function CVSection({
   );
 }
 
-function AnalysisExperience({ onReset, onImprove }: { onReset: () => void; onImprove: () => void }) {
+function AnalysisExperience({ onImprove }: { onImprove: () => void }) {
   return (
     <div className="relative w-full">
       {/* Resplandor ambiental de fondo */}
       <div className="absolute inset-0 -z-10 bg-radial from-violet-600/10 to-transparent blur-3xl pointer-events-none" />
       
       <div className="space-y-10">
-        <AnalysisHero onReset={onReset} />
-        
-        {/* Prominent CTA section: "Vale, tengo un análisis y ahora hago el CTA para mejorarlo" */}
-        <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-r from-violet-600/15 via-indigo-600/10 to-transparent p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden text-left">
-          <div className="space-y-1.5 z-10 max-w-2xl">
-            <h4 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <Sparkles className="size-5 text-violet-400 animate-pulse" />
-              Ready to optimize your CV?
-            </h4>
-            <p className="text-sm leading-relaxed text-white/70">
-              Your AI analysis is complete. Take the next step to automatically apply these recommendations, select a design layout, and dialog with the editor.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onImprove}
-            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 px-8 text-sm font-black text-white shadow-[0_8px_24px_rgba(124,58,237,0.3)] hover:scale-[1.03] transition duration-300 cursor-pointer z-10 w-full md:w-auto"
-          >
-            Improve CV in Template Studio
-            <ArrowRight className="size-4" />
-          </button>
-          
-          {/* Subtle background graphics */}
-          <div className="absolute right-0 top-0 w-48 h-full bg-radial from-violet-500/10 to-transparent blur-xl pointer-events-none" />
-        </div>
+        <AnalysisCTA onImprove={onImprove} />
+        <AnalysisHero />
 
         <div className="grid gap-8 lg:grid-cols-2">
           <ImprovementPanel />
@@ -1102,7 +1071,38 @@ function AnalysisExperience({ onReset, onImprove }: { onReset: () => void; onImp
   );
 }
 
-function AnalysisHero({ onReset }: { onReset: () => void }) {
+function AnalysisCTA({ onImprove }: { onImprove: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+      className="flex justify-center"
+    >
+      <motion.button
+        type="button"
+        onClick={onImprove}
+        animate={{ scale: [1, 1.03, 1], boxShadow: [
+          "0 20px 50px rgba(124,58,237,0.3)",
+          "0 24px 60px rgba(124,58,237,0.5)",
+          "0 20px 50px rgba(124,58,237,0.3)",
+        ]}}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+        className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-violet-600 px-12 text-base font-bold text-white transition hover:bg-violet-500 active:scale-[0.97] cursor-pointer"
+      >
+        Improve CV in Template Studio
+        <motion.span
+          animate={{ x: [0, 5, 0] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ArrowRight className="size-5" />
+        </motion.span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function AnalysisHero() {
   return (
     <div className="rounded-3xl border border-amber-500/18 bg-gradient-to-br from-amber-500/[0.12] via-amber-600/[0.03] to-transparent p-8 sm:p-10 shadow-[0_24px_80px_rgba(245,158,11,0.08)] relative overflow-hidden">
       {/* Resplandor interior decorativo */}
@@ -1147,16 +1147,6 @@ function AnalysisHero({ onReset }: { onReset: () => void }) {
           <MetaPill>gemini-2.5-flash</MetaPill>
           <MetaPill>June 2, 2026 · 00:38</MetaPill>
           <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
-        </div>
-        <div className="mt-8 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={onReset}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-6 text-sm font-bold text-rose-200 hover:bg-rose-500/20 transition duration-300 hover:scale-[1.02] cursor-pointer"
-          >
-            <Trash2 className="size-4" />
-            Restart Sandbox
-          </button>
         </div>
       </div>
     </div>
