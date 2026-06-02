@@ -67,6 +67,7 @@ export function LandingExperience() {
   const [accentColor, setAccentColor] = useState<"default" | "cool">("default");
   const [skillsPosition, setSkillsPosition] = useState<"bottom" | "top">("bottom");
   const [isSummaryCondensed, setIsSummaryCondensed] = useState(false);
+  const [isSuggestionsApplied, setIsSuggestionsApplied] = useState(false);
 
   useEffect(() => {
     if (step !== "uploading") return;
@@ -90,16 +91,22 @@ export function LandingExperience() {
     window.setTimeout(() => setStep("analysis"), 3800);
   };
 
-  const reset = () => {
-    setStep("idle");
-    setSelectedTemplate("pulso");
+  const resetStudioStates = () => {
     setAccentColor("default");
     setSkillsPosition("bottom");
     setIsSummaryCondensed(false);
+    setIsSuggestionsApplied(false);
+  };
+
+  const reset = () => {
+    setStep("idle");
+    setSelectedTemplate("pulso");
+    resetStudioStates();
     flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleTabClick = (tabKey: "upload" | "analysis" | "studio") => {
+    resetStudioStates();
     if (tabKey === "upload") {
       if (step === "analysis" || step === "loading" || step === "templates" || step === "studio") {
         setStep("ready");
@@ -278,6 +285,7 @@ export function LandingExperience() {
               >
                 <TemplateSelectionView onSelectTemplate={(tpl) => {
                   setSelectedTemplate(tpl);
+                  resetStudioStates();
                   setStep("studio");
                 }} />
               </motion.div>
@@ -292,13 +300,18 @@ export function LandingExperience() {
               >
                 <TemplateStudioView 
                   template={selectedTemplate}
-                  onChangeTemplate={() => setStep("templates")}
+                  onChangeTemplate={() => {
+                    resetStudioStates();
+                    setStep("templates");
+                  }}
                   accentColor={accentColor}
                   setAccentColor={setAccentColor}
                   skillsPosition={skillsPosition}
                   setSkillsPosition={setSkillsPosition}
                   isSummaryCondensed={isSummaryCondensed}
                   setIsSummaryCondensed={setIsSummaryCondensed}
+                  isSuggestionsApplied={isSuggestionsApplied}
+                  setIsSuggestionsApplied={setIsSuggestionsApplied}
                 />
               </motion.div>
             ) : step === "loading" ? (
@@ -705,31 +718,43 @@ function UploadDropzone({ ready, uploading }: { ready: boolean; uploading: boole
 }
 
 function RealCVPreview({
-  template = "pulso",
+  template = "raw",
   accentColor = "default",
   skillsPosition = "bottom",
   isSummaryCondensed = false,
+  isSuggestionsApplied = false,
   small = false,
 }: {
-  template?: "linea" | "marco" | "pulso" | "filo";
+  template?: "raw" | "linea" | "marco" | "pulso" | "filo";
   accentColor?: "default" | "cool";
   skillsPosition?: "bottom" | "top";
   isSummaryCondensed?: boolean;
+  isSuggestionsApplied?: boolean;
   small?: boolean;
 }) {
+  const getResolvedColor = (t: string, accent: "default" | "cool") => {
+    if (t === "linea") return accent === "cool" ? "#1e3a8a" : "#111827";
+    if (t === "marco") return accent === "cool" ? "#1d4ed8" : "#1a1a2e";
+    if (t === "pulso") return accent === "cool" ? "#6366f1" : "#0f766e";
+    if (t === "filo") return accent === "cool" ? "#06b6d4" : "#9f1239";
+    return "#111827";
+  };
+
+  const resolvedColor = getResolvedColor(template, accentColor);
+
   const getTemplatePaperStyle = (t: string) => {
-    if (t === "linea") return "font-mono bg-[#fafafa] border-slate-200 text-slate-800";
-    if (t === "marco") return "font-serif bg-[#fdfdfd] border-red-200 text-slate-900";
-    if (t === "pulso") return "font-sans bg-[#ffffff] border-slate-100 text-slate-800";
-    if (t === "filo") return "font-sans bg-[#fafbfc] border-slate-200 text-slate-850";
-    return "bg-white";
+    if (t === "linea") return "font-sans bg-[#ffffff] border-slate-200 text-[#2d2d2d]";
+    if (t === "marco") return "font-serif bg-[#fdfdfd] border-slate-200 text-[#2d2d2d]";
+    if (t === "pulso") return "font-sans bg-[#ffffff] border-slate-100 text-[#2d2d2d]";
+    if (t === "filo") return "font-sans bg-[#ffffff] border-slate-200 text-[#27272a]";
+    return "font-serif bg-white border-slate-300 text-slate-800";
   };
 
   const getAccentBgClass = (t: string, col: "default" | "cool") => {
-    if (t === "linea") return "bg-slate-200 text-slate-800";
-    if (t === "marco") return col === "default" ? "bg-red-50 text-red-800" : "bg-blue-50 text-blue-900";
-    if (t === "pulso") return col === "default" ? "bg-emerald-50 text-emerald-700" : "bg-violet-50 text-violet-700";
-    if (t === "filo") return col === "default" ? "bg-orange-50 text-orange-700" : "bg-cyan-50 text-cyan-700";
+    if (t === "linea") return "bg-[#f4f4f5] text-[#2d2d2d] border border-slate-200/50";
+    if (t === "marco") return "bg-[#f0ede6] text-[#2d2d2d]";
+    if (t === "pulso") return col === "cool" ? "bg-violet-50 text-violet-700 border border-violet-100/50" : "bg-[#f0fdfa] text-[#0f766e] border border-teal-100/50";
+    if (t === "filo") return col === "cool" ? "border border-[#06b6d4] text-[#27272a] bg-white rounded-none" : "border border-[#9f1239] text-[#27272a] bg-white rounded-none";
     return "bg-slate-100";
   };
 
@@ -737,41 +762,102 @@ function RealCVPreview({
     ? ["skills", "summary", "experience"] 
     : ["summary", "experience", "skills"];
 
+  const experiences = [
+    {
+      company: "Edpuzzle",
+      role: "Senior Software Engineer",
+      dates: "Sep 2024 - Present",
+      bullets: isSuggestionsApplied ? [
+        "✨ <strong>Drove feature delivery</strong> for a platform with <strong>2M+ daily active users</strong>, maintaining a <strong>99.98% uptime SLA</strong>.",
+        "✨ <strong>Architected and scaled</strong> high-throughput backend services (Node.js, MongoDB, Redis), reducing query latency by <strong>35%</strong>.",
+        "✨ <strong>Standardized AI-assisted engineering workflows</strong> across squads, boosting delivery velocity by <strong>22%</strong>."
+      ] : [
+        "Own product features end to end for a platform used by 2M+ daily active users.",
+        "Operate Node.js, MongoDB and Redis systems under real production load.",
+        "Help the engineering team adopt AI-assisted development workflows.",
+      ],
+    },
+    {
+      company: "Dezzai",
+      role: "Tech Lead",
+      dates: "Sep 2020 - Sep 2024",
+      bullets: isSuggestionsApplied ? [
+        "✨ <strong>Steered product engineering</strong> and digital workflows for <strong>Grupo Prisa (Colombia)</strong>, scaling team capacity by <strong>40%</strong>.",
+        "✨ <strong>Designed event-driven analytical systems</strong> and DDD boundaries, accelerating data pipeline throughput by <strong>3x</strong>."
+      ] : [
+        "Built and scaled multidisciplinary engineering teams and delivery practices.",
+        "Designed event-driven systems, DDD boundaries and data processing pipelines.",
+      ],
+    },
+  ];
+
   return (
     <div
-      className={`cv-paper mx-auto rounded-lg shadow-2xl transition-all duration-300 ${getTemplatePaperStyle(template)} ${
+      className={`cv-paper mx-auto transition-all duration-300 ${getTemplatePaperStyle(template)} ${
         small
-          ? "max-h-[460px] max-w-[390px] overflow-hidden p-5 text-[10px]"
-          : "w-full max-w-[680px] p-10 sm:p-12 text-[12px] flex flex-col"
+          ? "max-h-[460px] max-w-[390px] overflow-hidden p-5 text-[10px] rounded-lg"
+          : "w-full max-w-[680px] p-10 sm:p-12 text-[12px] flex flex-col rounded-lg"
       }`}
     >
-      <header className={`border-b pb-4 ${
-        template === "linea" ? "border-slate-200 text-left" :
-        template === "marco" ? "border-slate-300 text-center" :
-        template === "pulso" ? `${accentColor === "default" ? "border-emerald-100" : "border-violet-100"} text-left` :
-        "border-slate-200 text-left"
-      }`}>
-        <h3 className={`font-black tracking-wide ${
-          template === "linea" ? "text-base uppercase" :
-          template === "marco" ? "text-xl italic font-semibold text-slate-900" :
-          template === "pulso" ? "text-2xl font-extrabold text-slate-900" :
-          "text-lg font-bold text-slate-900"
-        }`}>
-          {profile.name}
-        </h3>
-        <p className={`text-xs font-semibold ${
-          template === "linea" ? "text-slate-600 uppercase" :
-          template === "marco" ? "text-slate-500 uppercase tracking-widest text-slate-700" :
-          template === "pulso" ? `${accentColor === "default" ? "text-emerald-600" : "text-violet-600"}` :
-          "text-slate-700"
-        }`}>
-          {profile.role}
-        </p>
-        <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600 ${template === "marco" ? "justify-center" : "justify-start"}`}>
-          <p>📧 {profile.email}</p>
-          <p>💻 github.com/JonathandelaSen</p>
-        </div>
-      </header>
+      {template === "raw" && (
+        <header className="border-b border-slate-300 pb-4 text-left font-serif">
+          <h3 className="text-2xl font-bold text-black">{profile.name}</h3>
+          <p className="text-xs text-slate-600 italic mt-0.5">{profile.role}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 font-medium">
+            <p>📧 {profile.email}</p>
+            <p>💻 github.com/JonathandelaSen</p>
+          </div>
+        </header>
+      )}
+
+      {template === "linea" && (
+        <header className="flex justify-between items-start border-b-[2.5px] pb-4 mb-5" style={{ borderBottomColor: resolvedColor }}>
+          <div>
+            <h3 className="text-2xl font-black text-[#101010] leading-none mb-1">{profile.name}</h3>
+            <p className="text-[11px] text-[#505050] font-semibold uppercase tracking-wider">{profile.role}</p>
+          </div>
+          <div className="text-right text-[10.5px] text-[#4f4f4f] flex flex-col gap-0.5 mt-0.5">
+            <span>{profile.email}</span>
+            <span>github.com/JonathandelaSen</span>
+          </div>
+        </header>
+      )}
+
+      {template === "marco" && (
+        <header className="flex flex-col items-center text-center gap-1 border-b pb-3.5 mb-5" style={{ borderBottomColor: resolvedColor }}>
+          <h3 className="text-2xl font-bold tracking-wide" style={{ color: resolvedColor }}>{profile.name}</h3>
+          <p className="text-[11px] text-[#505050] uppercase tracking-widest font-semibold">{profile.role}</p>
+          <div className="mt-1.5 flex flex-wrap justify-center gap-x-1.5 gap-y-0.5 text-[10.5px] text-[#4f4f4f]">
+            <span>{profile.email}</span>
+            <span>·</span>
+            <span>github.com/JonathandelaSen</span>
+          </div>
+        </header>
+      )}
+
+      {template === "pulso" && (
+        <header className="flex flex-col gap-1 pb-4 mb-4">
+          <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">{profile.name}</h3>
+          <p className="text-[11px] font-black uppercase tracking-wider" style={{ color: resolvedColor }}>{profile.role}</p>
+          <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#4f4f4f] font-semibold">
+            <span>{profile.email}</span>
+            <span>·</span>
+            <span>github.com/JonathandelaSen</span>
+          </div>
+        </header>
+      )}
+
+      {template === "filo" && (
+        <header className="flex flex-col gap-1.5 pb-4 mb-4 border-t-[6px] border-b-2 border-b-[#171717] pt-3.5" style={{ borderTopColor: resolvedColor }}>
+          <h3 className="text-3xl font-black text-[#111111] uppercase tracking-tight leading-none mb-0.5">{profile.name}</h3>
+          <p className="text-[10.5px] font-black uppercase tracking-wider" style={{ color: resolvedColor }}>{profile.role}</p>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] font-bold text-[#3f3f46]">
+            <span>{profile.email}</span>
+            <span>·</span>
+            <span>github.com/JonathandelaSen</span>
+          </div>
+        </header>
+      )}
       
       <motion.div layout className="flex-1 flex flex-col">
         <AnimatePresence mode="popLayout">
@@ -780,27 +866,38 @@ function RealCVPreview({
               return (
                 <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="summary">
                   <CVSection title="About me" small={small} template={template} accentColor={accentColor}>
-                    {isSummaryCondensed ? (
-                      <p>
-                        Senior Software Engineer with 10+ years of experience scaling high-traffic applications (<strong>2M+ DAU</strong>) and leading AI-first developer workflows at Edpuzzle. Expert in backend architecture, system design, DDD, and event-driven microservices.
-                      </p>
-                    ) : (
-                      <>
-                        <p>
-                          Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
-                          Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
-                          high-throughput services under real production load.
-                        </p>
-                        <p>
-                          I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
-                          experience, as well as system design, DDD, CQRS and event-driven systems.
-                        </p>
-                        <p>
-                          At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
-                          helping standardize tooling and improve engineering context for AI-assisted work.
-                        </p>
-                      </>
-                    )}
+                    <div className="transition-all duration-500 rounded-lg p-1.5">
+                      {isSummaryCondensed ? (
+                        <p dangerouslySetInnerHTML={{ __html: isSuggestionsApplied 
+                          ? "✨ <strong>Senior Software Engineer</strong> with 10+ years scaling high-traffic systems (<strong>2M+ DAU</strong>) and directing developer velocity workflows at Edpuzzle. Expert in backend performance, DDD, and event-driven architectures."
+                          : "Senior Software Engineer with 10+ years of experience scaling high-traffic applications (<strong>2M+ DAU</strong>) and leading AI-first developer workflows at Edpuzzle. Expert in backend architecture, system design, DDD, and event-driven microservices."
+                        }} />
+                      ) : (
+                        <div className="space-y-1.5">
+                          {isSuggestionsApplied ? (
+                            <p>
+                              ✨ Senior Software Engineer with 10+ years building high-scale product systems and AI-assisted engineering workflows. I connect backend architecture, product iteration, and developer productivity to ship reliable AI-powered experiences faster.
+                            </p>
+                          ) : (
+                            <>
+                              <p>
+                                Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
+                                Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
+                                high-throughput services under real production load.
+                              </p>
+                              <p>
+                                I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
+                                experience, as well as system design, DDD, CQRS and event-driven systems.
+                              </p>
+                              <p>
+                                At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
+                                helping standardize tooling and improve engineering context for AI-assisted work.
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </CVSection>
                 </motion.div>
               );
@@ -809,30 +906,38 @@ function RealCVPreview({
               return (
                 <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="experience">
                   <CVSection title="Work experience" small={small} template={template} accentColor={accentColor}>
-                    <div className="space-y-4">
-                      <div>
-                        <p className="flex justify-between font-bold text-slate-800">
-                          <span>Senior Software Engineer at Edpuzzle</span>
-                          <span className="text-slate-500 font-normal">Sep 2024 - Present</span>
-                        </p>
-                        <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
-                          <li>Own features end-to-end for a platform with <strong>2M+ daily active users</strong>.</li>
-                          <li>Develop and operate high throughput backend services using Node.js, Express, MongoDB and Redis.</li>
-                          <li>Design monitoring pipelines and dashboards using DataDog.</li>
-                        </ul>
-                      </div>
-
-                      <div>
-                        <p className="flex justify-between font-bold text-slate-800">
-                          <span>Tech Lead at Dezzai</span>
-                          <span className="text-slate-500 font-normal">Sep 2020 - Sep 2024</span>
-                        </p>
-                        <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
-                          <li>Collaborated with external partners such as <strong>Grupo Prisa (Colombia)</strong> to design digitizing workflows.</li>
-                          <li>Built and scaled a multidisciplinary engineering team, improving development practices.</li>
-                          <li>Designed backend systems using event-driven architecture, DDD, and scalable data pipelines.</li>
-                        </ul>
-                      </div>
+                    <div className={template === "raw" ? "space-y-3" : "space-y-4"}>
+                      {experiences.map((exp, index) => {
+                        const isModern = template === "pulso";
+                        const titleText = isModern ? exp.company : exp.role;
+                        const metaText = isModern ? `${exp.role} · Barcelona` : `${exp.company} · Barcelona`;
+                        
+                        return (
+                          <div 
+                            key={index} 
+                            className="cvp-item break-inside-avoid transition-all duration-500 rounded-lg p-1.5"
+                          >
+                            <div className="flex justify-between items-start gap-4 mb-0.5">
+                              <div>
+                                <h5 className={`font-bold text-[#161616] text-[11px] sm:text-[11.5px] leading-tight ${template === "marco" ? "font-serif" : "font-sans"}`}>
+                                  {titleText}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 font-medium mt-0.5">
+                                  {metaText}
+                                </p>
+                              </div>
+                              <span className="text-[10px] text-slate-500 font-semibold shrink-0 text-right">
+                                {exp.dates}
+                              </span>
+                            </div>
+                            <ul className="mt-1.5 space-y-0.5 pl-4 list-disc text-[10px] sm:text-[10.5px] text-slate-700 leading-relaxed">
+                              {exp.bullets.map((bullet, idx) => (
+                                <li key={idx} dangerouslySetInnerHTML={{ __html: bullet }} />
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
                   </CVSection>
                 </motion.div>
@@ -842,12 +947,20 @@ function RealCVPreview({
               return (
                 <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="skills">
                   <CVSection title="Skills" small={small} template={template} accentColor={accentColor}>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {["Node.js", "TypeScript", "MongoDB", "Redis", "React", "DDD", "CQRS", "Observability", "AI workflows"].map((skill) => (
-                        <span key={skill} className={`px-2 py-0.5 rounded text-[10px] font-bold ${getAccentBgClass(template, accentColor)}`}>
-                          {skill}
-                        </span>
-                      ))}
+                    <div className="transition-all duration-500 rounded-lg p-1.5">
+                      {template === "raw" ? (
+                        <p className="text-slate-600 font-normal text-[11px] sm:text-[11.5px] leading-relaxed font-serif">
+                          Node.js, TypeScript, MongoDB, Redis, React, DDD, CQRS, Observability, AI workflows.
+                        </p>
+                      ) : (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {["Node.js", "TypeScript", "MongoDB", "Redis", "React", "DDD", "CQRS", "Observability", "AI workflows"].map((skill) => (
+                            <span key={skill} className={`px-2 py-0.5 rounded text-[9.5px] font-bold ${getAccentBgClass(template, accentColor)}`}>
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CVSection>
                 </motion.div>
@@ -865,47 +978,84 @@ function CVSection({
   title,
   children,
   small = false,
-  template = "pulso",
+  template = "raw",
   accentColor = "default",
 }: {
   title: string;
   children: React.ReactNode;
   small?: boolean;
-  template?: "linea" | "marco" | "pulso" | "filo";
+  template?: "raw" | "linea" | "marco" | "pulso" | "filo";
   accentColor?: "default" | "cool";
 }) {
+  const getResolvedColor = (t: string, accent: "default" | "cool") => {
+    if (t === "linea") return accent === "cool" ? "#1e3a8a" : "#111827";
+    if (t === "marco") return accent === "cool" ? "#1d4ed8" : "#1a1a2e";
+    if (t === "pulso") return accent === "cool" ? "#6366f1" : "#0f766e";
+    if (t === "filo") return accent === "cool" ? "#06b6d4" : "#9f1239";
+    return "#111827";
+  };
+
+  const resolvedColor = getResolvedColor(template, accentColor);
+
   if (template === "linea") {
     return (
-      <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-mono`}>
-        <h4 className="border-b border-slate-300 pb-0.5 font-bold uppercase tracking-wider text-slate-900 text-[10px] sm:text-[11px]">{title}</h4>
-        <div className="mt-2 space-y-1.5 text-slate-700 text-[9px] sm:text-[11px] leading-relaxed">{children}</div>
+      <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-sans`}>
+        <h4 
+          className="border-b pb-1 font-extrabold uppercase tracking-wider text-slate-900 text-[10.5px] sm:text-[11px]"
+          style={{ borderBottomColor: '#dfd9ce' }}
+        >
+          {title}
+        </h4>
+        <div className="mt-2 space-y-1.5 text-slate-700 text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
       </section>
     );
   }
   if (template === "marco") {
-    const color = accentColor === "default" ? "text-red-800" : "text-blue-900";
     return (
-      <section className={`${small ? "mt-4" : "mt-6"} text-slate-900 text-left font-serif`}>
-        <h4 className={`border-b border-double border-slate-300 pb-1 font-bold text-center uppercase tracking-widest ${color} text-[11px] sm:text-[12px]`}>{title}</h4>
-        <div className="mt-2.5 space-y-2 text-slate-800 text-[10px] sm:text-[11px] leading-relaxed">{children}</div>
+      <section className={`${small ? "mt-4" : "mt-5.5"} text-slate-900 text-left font-serif`}>
+        <h4 
+          className="border-b pb-1 font-bold text-center uppercase tracking-widest text-[10.5px] sm:text-[11.5px]"
+          style={{ borderBottomColor: '#c8c4bc', color: resolvedColor }}
+        >
+          {title}
+        </h4>
+        <div className="mt-2 space-y-2 text-slate-800 text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
       </section>
     );
   }
   if (template === "filo") {
-    const border = accentColor === "default" ? "border-orange-500" : "border-cyan-500";
     return (
-      <section className={`${small ? "mt-4" : "mt-6"} text-slate-800 text-left pl-3 border-l-2 ${border}`}>
-        <h4 className="mb-1 font-bold uppercase tracking-wider text-slate-900 text-[10px] sm:text-[11px]">{title}</h4>
-        <div className="space-y-1.5 text-slate-700 text-[9.5px] sm:text-[11px] leading-relaxed">{children}</div>
+      <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left`}>
+        <h4 
+          className="border-t-2 border-b py-1.5 font-black uppercase tracking-wider text-[10.5px] sm:text-[11px] text-[#171717]"
+          style={{ borderTopColor: resolvedColor, borderBottomColor: '#171717' }}
+        >
+          {title}
+        </h4>
+        <div className="mt-2 space-y-1.5 text-[#27272a] text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
+      </section>
+    );
+  }
+  if (template === "raw") {
+    return (
+      <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-serif`}>
+        <h4 className="mb-1 border-b border-slate-300 pb-0.5 font-bold uppercase tracking-wider text-black text-[11px] sm:text-[11.5px]">
+          {title}
+        </h4>
+        <div className="space-y-1.5 text-slate-800 text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
       </section>
     );
   }
   // Default is "pulso"
-  const color = accentColor === "default" ? "text-emerald-600" : "text-violet-600";
   return (
-    <section className={`${small ? "mt-4" : "mt-6"} text-slate-800 text-left`}>
-      <h4 className={`mb-1.5 font-extrabold uppercase tracking-wider ${color} text-[11px] sm:text-[12px]`}>{title}</h4>
-      <div className="space-y-2 text-slate-700 text-[10px] sm:text-[11px] leading-relaxed">{children}</div>
+    <section className={`${small ? "mt-4" : "mt-5.5"} text-slate-800 text-left`}>
+      <h4 
+        className="border-l-4 pl-3 pb-0.5 font-black uppercase tracking-wider text-[10.5px] sm:text-[11px]"
+        style={{ borderLeftColor: resolvedColor, color: resolvedColor }}
+      >
+        {title}
+      </h4>
+      <div className="mt-2 space-y-1.5 text-slate-700 text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -917,7 +1067,32 @@ function AnalysisExperience({ onReset, onImprove }: { onReset: () => void; onImp
       <div className="absolute inset-0 -z-10 bg-radial from-violet-600/10 to-transparent blur-3xl pointer-events-none" />
       
       <div className="space-y-10">
-        <AnalysisHero onReset={onReset} onImprove={onImprove} />
+        <AnalysisHero onReset={onReset} />
+        
+        {/* Prominent CTA section: "Vale, tengo un análisis y ahora hago el CTA para mejorarlo" */}
+        <div className="rounded-2xl border border-violet-500/20 bg-gradient-to-r from-violet-600/15 via-indigo-600/10 to-transparent p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden text-left">
+          <div className="space-y-1.5 z-10 max-w-2xl">
+            <h4 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <Sparkles className="size-5 text-violet-400 animate-pulse" />
+              Ready to optimize your CV?
+            </h4>
+            <p className="text-sm leading-relaxed text-white/70">
+              Your AI analysis is complete. Take the next step to automatically apply these recommendations, select a design layout, and dialog with the editor.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onImprove}
+            className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 px-8 text-sm font-black text-white shadow-[0_8px_24px_rgba(124,58,237,0.3)] hover:scale-[1.03] transition duration-300 cursor-pointer z-10 w-full md:w-auto"
+          >
+            Improve CV in Template Studio
+            <ArrowRight className="size-4" />
+          </button>
+          
+          {/* Subtle background graphics */}
+          <div className="absolute right-0 top-0 w-48 h-full bg-radial from-violet-500/10 to-transparent blur-xl pointer-events-none" />
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-2">
           <ImprovementPanel />
           <KeywordsPanel />
@@ -927,7 +1102,7 @@ function AnalysisExperience({ onReset, onImprove }: { onReset: () => void; onImp
   );
 }
 
-function AnalysisHero({ onReset, onImprove }: { onReset: () => void; onImprove: () => void }) {
+function AnalysisHero({ onReset }: { onReset: () => void }) {
   return (
     <div className="rounded-3xl border border-amber-500/18 bg-gradient-to-br from-amber-500/[0.12] via-amber-600/[0.03] to-transparent p-8 sm:p-10 shadow-[0_24px_80px_rgba(245,158,11,0.08)] relative overflow-hidden">
       {/* Resplandor interior decorativo */}
@@ -981,14 +1156,6 @@ function AnalysisHero({ onReset, onImprove }: { onReset: () => void; onImprove: 
           >
             <Trash2 className="size-4" />
             Restart Sandbox
-          </button>
-          <button
-            type="button"
-            onClick={onImprove}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-amber-500 hover:bg-amber-400 px-8 text-sm font-bold text-[#090a10] shadow-[0_12px_40px_rgba(245,158,11,0.25)] transition duration-300 hover:scale-[1.02] cursor-pointer"
-          >
-            Improve your CV
-            <ArrowRight className="size-4" />
           </button>
         </div>
       </div>
@@ -1176,11 +1343,18 @@ function TemplateSelectionView({
               {tpl.description}
             </p>
 
-            {/* Fila del mini bosquejo visual del template */}
-            <div className="mt-6 p-4 rounded-xl bg-black/40 border border-white/5 font-mono text-[9px] text-white/30 space-y-1 select-none pointer-events-none">
-              {tpl.previewLines.map((line, i) => (
-                <div key={i} className="truncate">{line}</div>
-              ))}
+            {/* Live miniature preview of the template */}
+            <div className="mt-5 h-[235px] w-full rounded-xl bg-slate-950/50 border border-white/5 overflow-hidden relative select-none pointer-events-none flex justify-center items-start">
+              <div 
+                className="relative shrink-0 origin-top"
+                style={{
+                  width: '500px',
+                  transform: 'scale(0.45)',
+                  marginTop: '8px',
+                }}
+              >
+                <RealCVPreview template={tpl.id} accentColor="default" small={false} />
+              </div>
             </div>
 
             <div className="mt-6 inline-flex h-10 w-full items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white group-hover:bg-violet-600 group-hover:border-violet-500 transition duration-300">
@@ -1202,6 +1376,8 @@ function TemplateStudioView({
   setSkillsPosition,
   isSummaryCondensed,
   setIsSummaryCondensed,
+  isSuggestionsApplied,
+  setIsSuggestionsApplied,
 }: {
   template: "linea" | "marco" | "pulso" | "filo";
   onChangeTemplate: () => void;
@@ -1211,6 +1387,8 @@ function TemplateStudioView({
   setSkillsPosition: (p: "bottom" | "top") => void;
   isSummaryCondensed: boolean;
   setIsSummaryCondensed: (b: boolean) => void;
+  isSuggestionsApplied: boolean;
+  setIsSuggestionsApplied: (b: boolean) => void;
 }) {
   const [messages, setMessages] = useState<Array<{ sender: "ai" | "user"; text: string }>>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -1234,7 +1412,7 @@ function TemplateStudioView({
   const isSkillsApplied = skillsPosition === "top";
   const isSummaryApplied = isSummaryCondensed;
 
-  const handlePillClick = (type: "color" | "skills" | "summary") => {
+  const handlePillClick = (type: "color" | "skills" | "summary" | "suggestions") => {
     if (isTyping) return;
     
     let userText = "";
@@ -1244,6 +1422,8 @@ function TemplateStudioView({
       userText = "🔄 Move Skills section above Work Experience.";
     } else if (type === "summary") {
       userText = "✍️ Condense the professional summary paragraph.";
+    } else if (type === "suggestions") {
+      userText = "✨ Implement AI recommendations from profile analysis.";
     }
 
     setMessages((prev) => [...prev, { sender: "user", text: userText }]);
@@ -1260,6 +1440,10 @@ function TemplateStudioView({
       } else if (type === "summary") {
         setIsSummaryCondensed(true);
         aiText = "Summary condensed! Your professional profile bio is now brief, direct, and results-oriented.";
+      } else if (type === "suggestions") {
+        setIsSuggestionsApplied(true);
+        setSkillsPosition("top");
+        aiText = "All suggestions applied! I have repositioned your technical skills to the top, quantified your impact at Edpuzzle (99.98% uptime, 35% database query reduction), and reframed your CTO role at Dezzai to sound more executive-ready. Check out the highlighted changes in the preview!";
       }
 
       setMessages((prev) => [...prev, { sender: "ai", text: aiText }]);
@@ -1324,9 +1508,21 @@ function TemplateStudioView({
 
         {/* Entrada y píldoras rápidas */}
         <div className="p-5 border-t border-white/8 bg-white/[0.01] space-y-4">
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Suggested Adjustments</p>
             <div className="flex flex-wrap gap-2">
+              <button
+                disabled={isSuggestionsApplied || isTyping}
+                onClick={() => handlePillClick("suggestions")}
+                className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-black transition duration-300 ${
+                  isSuggestionsApplied
+                    ? "bg-amber-500/12 border border-amber-500/20 text-amber-400 opacity-60 cursor-not-allowed"
+                    : "bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 font-black hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(245,158,11,0.38)] cursor-pointer"
+                }`}
+              >
+                {isSuggestionsApplied ? "✓ Suggestions Applied" : "✨ Implement Suggestions"}
+              </button>
+
               <button
                 disabled={isColorApplied || isTyping}
                 onClick={() => handlePillClick("color")}
@@ -1415,6 +1611,7 @@ function TemplateStudioView({
             accentColor={accentColor}
             skillsPosition={skillsPosition}
             isSummaryCondensed={isSummaryCondensed}
+            isSuggestionsApplied={isSuggestionsApplied}
             small={false}
           />
         </div>
