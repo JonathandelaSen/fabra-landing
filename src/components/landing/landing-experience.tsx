@@ -1471,7 +1471,30 @@ function TemplateStudioView({
   };
 
   return (
-    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-4 select-none">
+    <div className="w-full py-4 select-none space-y-6">
+      <div className="flex justify-center">
+        <motion.button
+          type="button"
+          onClick={onFinalize}
+          animate={{ scale: [1, 1.03, 1], boxShadow: [
+            "0 16px 40px rgba(16,185,129,0.25)",
+            "0 20px 50px rgba(16,185,129,0.4)",
+            "0 16px 40px rgba(16,185,129,0.25)",
+          ]}}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 px-10 text-sm font-black text-white transition hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+        >
+          <Check className="size-4 stroke-[3]" />
+          Finalize CV
+          <motion.span
+            animate={{ x: [0, 5, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ArrowRight className="size-4" />
+          </motion.span>
+        </motion.button>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
       {/* Columna Izquierda: Chatbot Editor */}
       <div className="lg:col-span-5 flex flex-col h-[640px] rounded-3xl border border-white/10 bg-[#0c0d12]/80 backdrop-blur-md shadow-2xl overflow-hidden relative">
@@ -1601,9 +1624,9 @@ function TemplateStudioView({
       {/* Columna Derecha: Previsualización de CV adaptable */}
       <div className="lg:col-span-7 flex flex-col items-center w-full">
         <div className="w-full max-w-[680px] mb-4 flex items-center justify-between border-b border-white/10 pb-4">
-          <div>
-            <p className="text-sm font-semibold text-white">Interactive CV Template Studio</p>
-            <p className="text-xs text-white/42">Editing in {template.toUpperCase()} Mode</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-sm font-bold text-white uppercase tracking-wider">Interactive CV Studio</p>
+            <p className="text-[10px] font-medium text-white/42 uppercase tracking-widest">Editing in {template.toUpperCase()} Mode</p>
           </div>
           <div className="flex gap-2">
             {accentColor === "cool" && (
@@ -1634,23 +1657,7 @@ function TemplateStudioView({
             small={false}
           />
         </div>
-
-        {/* Finalize CV button */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 flex justify-center"
-        >
-          <button
-            type="button"
-            onClick={onFinalize}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 px-8 text-sm font-black text-white shadow-[0_8px_24px_rgba(16,185,129,0.3)] hover:scale-[1.03] transition duration-300 cursor-pointer"
-          >
-            <Check className="size-4 stroke-[3]" />
-            Finalize CV
-          </button>
-        </motion.div>
+      </div>
       </div>
 
     </div>
