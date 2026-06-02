@@ -1973,7 +1973,7 @@ function CompletionExperience({
           transition={{ delay: 1, duration: 0.5 }}
           className="w-full max-w-2xl"
         >
-          <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-600/15 via-indigo-600/10 to-cyan-600/5 p-8 sm:p-10 shadow-[0_24px_80px_rgba(124,58,237,0.12)] relative overflow-hidden">
+          <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-600/15 via-indigo-600/10 to-cyan-600/5 p-4 sm:p-6 shadow-[0_24px_80px_rgba(124,58,237,0.12)] relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute -right-16 -top-16 size-64 bg-radial from-violet-500/10 to-transparent blur-3xl pointer-events-none" />
             <div className="absolute -left-16 -bottom-16 size-64 bg-radial from-cyan-500/8 to-transparent blur-3xl pointer-events-none" />
@@ -1991,33 +1991,30 @@ function CompletionExperience({
               </p>
 
               {/* Fake job card */}
-              <div className="w-full max-w-md rounded-2xl border border-violet-500/30 bg-gradient-to-br from-[#0c0d12]/90 to-[#090a10]/95 p-6 mb-7 text-left shadow-[0_20px_50px_rgba(124,58,237,0.15)] relative overflow-hidden hover:border-violet-500/50 transition duration-300 group">
+              <div className="w-full  rounded-2xl border border-violet-500/30 bg-gradient-to-br from-[#0c0d12]/90 to-[#090a10]/95 p-7 sm:p-8 mb-8 text-left shadow-[0_25px_60px_rgba(124,58,237,0.18)] relative overflow-hidden hover:border-violet-500/50 transition duration-300 group">
                 {/* Accent glow line inside */}
                 <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500" />
                 
-                <div className="flex gap-4 items-start mb-4">
-                  {/* Mock Company Logo */}
-                  <div className="size-12 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center font-black text-white text-lg shrink-0 shadow-lg shadow-violet-500/25">
-                    N
-                  </div>
+                <div className="flex gap-5 items-start mb-5">
+
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-base sm:text-lg font-black text-white leading-tight truncate">{job.title}</p>
-                      <span className="shrink-0 rounded bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black text-emerald-400 uppercase tracking-wider">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-lg sm:text-2xl font-black text-white leading-tight truncate">{job.title}</p>
+                      <span className="shrink-0 rounded bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-[10px] font-black text-emerald-400 uppercase tracking-wider">
                         Active
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-white/60 mt-1">{job.company} · {job.location}</p>
+                    <p className="text-base font-semibold text-white/60 mt-1">{job.company} · {job.location}</p>
                   </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-4">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-wider mb-2">Role tags & technology</p>
-                  <div className="flex flex-wrap gap-1.5">
+                <div className="border-t border-white/5 pt-5">
+                  <p className="text-[11px] font-black text-white/30 uppercase tracking-wider mb-3">Role tags & technology</p>
+                  <div className="flex flex-wrap gap-2">
                     {job.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-lg border border-violet-500/10 bg-violet-500/[0.04] px-2.5 py-1 text-xs font-semibold text-violet-300"
+                        className="rounded-lg border border-violet-500/10 bg-violet-500/[0.04] px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-violet-300"
                       >
                         {tag}
                       </span>
@@ -2343,10 +2340,10 @@ function JobMatchAnalysisView({
   const [activeHeroTab, setActiveHeroTab] = useState("summary");
 
   const heroTabs = [
-    { id: "summary", label: "Summary" },
-    { id: "offer", label: "Offer Details" },
-    { id: "questions", label: "Questions" },
-    { id: "copilot", label: "AI Copilot" },
+    { id: "summary", label: "Summary", icon: ClipboardList },
+    { id: "offer", label: "Offer Details", icon: Briefcase },
+    { id: "questions", label: "Questions", icon: HelpCircle },
+    { id: "copilot", label: "AI Copilot", icon: Sparkles },
   ];
 
   return (
@@ -2423,149 +2420,346 @@ function JobMatchAnalysisView({
             </div>
           </div>
         </div>
-
-        {/* Tab Row (Visual only) */}
-        <div className="flex border-b border-white/8 mt-8 relative z-10 overflow-x-auto scrollbar-none">
-          {heroTabs.map((tab) => {
-            const isActive = tab.id === activeHeroTab;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveHeroTab(tab.id)}
-                className={`py-3 px-5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition duration-300 whitespace-nowrap cursor-pointer ${
-                  isActive
-                    ? "border-violet-500 text-white"
-                    : "border-transparent text-white/40 hover:text-white/70"
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
-      {/* Bottom Grid: 2 columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-        {/* Areas to improve */}
-        <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
-          <div>
-            <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span className="size-2.5 rounded-full bg-amber-500 animate-pulse" />
-              Areas to Improve (Strategic Gaps)
-            </h4>
-            <p className="text-xs text-white/40 mt-1">
-              Reframing recommendations to address missing requirements for the role.
-            </p>
-          </div>
+      {/* Tab Row (Now outside, below the card del score and above the contents) */}
+      <div className="flex gap-2 p-1.5 rounded-2xl bg-[#0c0d12]/40 border border-white/8 backdrop-blur-md w-full sm:w-fit overflow-x-auto scrollbar-none relative z-10">
+        {heroTabs.map((tab) => {
+          const isActive = tab.id === activeHeroTab;
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveHeroTab(tab.id)}
+              className={`flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? "bg-violet-600 text-white shadow-[0_0_20px_rgba(124,58,237,0.3)]"
+                  : "text-white/50 hover:text-white/80 hover:bg-white/[0.04]"
+              }`}
+            >
+              <Icon className={`size-3.5 ${isActive ? "text-white" : "text-white/50"}`} />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-          <div className="space-y-4 flex-1">
-            <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-4 flex gap-4">
-              <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                <span className="text-xs font-black text-amber-400">01</span>
+      {/* Tab Contents */}
+      <div className="w-full relative min-h-[300px]">
+        <AnimatePresence mode="wait">
+          {activeHeroTab === "summary" && (
+            <motion.div
+              key="summary-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-fadeIn"
+            >
+              {/* Areas to improve */}
+              <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+                <div>
+                  <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <span className="size-2.5 rounded-full bg-amber-500 animate-pulse" />
+                    Areas to Improve (Strategic Gaps)
+                  </h4>
+                  <p className="text-xs text-white/40 mt-1">
+                    Reframing recommendations to address missing requirements for the role.
+                  </p>
+                </div>
+
+                <div className="space-y-4 flex-1">
+                  <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-4 flex gap-4">
+                    <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-black text-amber-400">01</span>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-bold text-white">AI Evaluation & Observability Systems</h5>
+                      <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                        The job demands designing evaluation pipelines for AI products. Detail how you evaluated the performance or accuracy of AI features at Edpuzzle.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-violet-500/10 bg-violet-500/[0.02] p-4 flex gap-4">
+                    <div className="size-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-black text-violet-400">02</span>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-bold text-white">Staff-Level Technical Leadership</h5>
+                      <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                        Provide evidence of establishing engineering standards, mentoring senior developers, and making cross-team architecture decisions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-cyan-500/10 bg-cyan-500/[0.02] p-4 flex gap-4">
+                    <div className="size-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-black text-cyan-400">03</span>
+                    </div>
+                    <div>
+                      <h5 className="text-sm font-bold text-white">Platform-Oriented Architecture</h5>
+                      <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                        Shift language from &quot;building features&quot; to &quot;creating APIs, reusable components, and developer frameworks&quot; that empower other teams.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Keyword Alignment Dashboard */}
+              <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+                <div>
+                  <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <Target className="size-5 text-indigo-400" />
+                    Keyword & Signal Coverage
+                  </h4>
+                  <p className="text-xs text-white/40 mt-1">
+                    Comparison between job requirements and signals detected in your CV.
+                  </p>
+                </div>
+
+                <div className="space-y-5 flex-1">
+                  {/* Matching keywords */}
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-2">
+                      <span className="size-1.5 rounded-full bg-emerald-500" />
+                      Matching Signals (CV ↔ Offer)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Node.js", "High-traffic scale", "Product Ownership", "Redis caching", "Observability", "AI-assisted Workflows"].map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Missing keywords */}
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2">
+                      <span className="size-1.5 rounded-full bg-amber-500" />
+                      Missing Signals (Gaps)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["AI Evaluation Systems", "Staff Leadership Scope", "Platform-first wording", "E2E LLM Testing"].map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Offer Keywords */}
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mb-2">
+                      <span className="size-1.5 rounded-full bg-white/30" />
+                      Required in Offer
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {job.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1 text-xs font-semibold text-white/60"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeHeroTab === "offer" && (
+            <motion.div
+              key="offer-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-fadeIn"
+            >
+              {/* Role Overview */}
+              <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+                <div>
+                  <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <Briefcase className="size-5 text-violet-400" />
+                    Role Overview & Context
+                  </h4>
+                  <p className="text-xs text-white/40 mt-1">
+                    Main responsibilities and scope for the {job.title} position.
+                  </p>
+                </div>
+
+                <div className="space-y-4 text-sm text-white/70 leading-relaxed">
+                  <p>
+                    As a <strong className="text-white">{job.title}</strong> at <strong className="text-white">{job.company}</strong>, you will lead the core team focused on building robust AI-first interfaces and SDK developer tools. You will have cross-team influence, defining standards for AI pipelines, reliability under scale, and event observability.
+                  </p>
+                  <p>
+                    The AI Platform team is responsible for ensuring that all software engineers at the company can ship generative features with high performance and complete transparency.
+                  </p>
+                  <div className="pt-2 border-t border-white/5 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/40">Location:</span>
+                      <span className="font-semibold text-white/80">{job.location} (Remote)</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/40">Employment Type:</span>
+                      <span className="font-semibold text-white/80">Full-time</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/40">Scale target:</span>
+                      <span className="font-semibold text-white/80">2.2M+ active consumers</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Skill Matrix Checklist */}
+              <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+                <div>
+                  <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                    <Target className="size-5 text-cyan-400" />
+                    Required Technology Matrix
+                  </h4>
+                  <p className="text-xs text-white/40 mt-1">
+                    Core technologies and architectural paradigms required for this role.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-violet-400 block mb-2">Core Tech Stack</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      {["Node.js & TypeScript", "Redis / Cache Layers", "MongoDB & Postgres", "Observability (DataDog)", "Event Architectures", "Docker / Kubernetes"].map((item) => (
+                        <div key={item} className="flex items-center gap-2 text-xs text-white/80 bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                          <Check className="size-3.5 text-emerald-400 shrink-0" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-white/5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-cyan-400 block mb-2">Key Challenges</span>
+                    <ul className="space-y-2 text-xs text-white/60">
+                      <li className="flex items-start gap-2">
+                        <span className="size-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                        <span>Scaling product systems to handle 50k+ database operations/sec.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="size-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                        <span>Moving feature development to a platform-first methodology.</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="size-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                        <span>Building robust evaluation scripts to measure prompt effectiveness.</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeHeroTab === "questions" && (
+            <motion.div
+              key="questions-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6 w-full animate-fadeIn"
+            >
               <div>
-                <h5 className="text-sm font-bold text-white">AI Evaluation & Observability Systems</h5>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
-                  The job demands designing evaluation pipelines for AI products. Detail how you evaluated the performance or accuracy of AI features at Edpuzzle.
+                <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+                  <HelpCircle className="size-5 text-violet-400" />
+                  AI-Generated Interview Prep Questions
+                </h4>
+                <p className="text-xs text-white/40 mt-1">
+                  Practice questions based on your CV gaps and the {job.title} requirements.
                 </p>
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-violet-500/10 bg-violet-500/[0.02] p-4 flex gap-4">
-              <div className="size-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
-                <span className="text-xs font-black text-violet-400">02</span>
+              <div className="space-y-4">
+                {[
+                  {
+                    q: "Tell me about scaling systems under real traffic. How did you structure Node.js & MongoDB?",
+                    strategy: "Reference your experience at Edpuzzle with 2M+ daily active users. Discuss utilizing Redis for caching, MongoDB indexing/sharding, connection pooling mechanisms, and monitoring database load metrics."
+                  },
+                  {
+                    q: "Explain how you would establish an evaluation framework for LLM product workflows.",
+                    strategy: "Acknowledge this is a critical gap. Propose an evaluation pipeline: defining ground truth test sets, automating evaluation prompts (evaluator LLM), tracking evaluation latency, and using tracing platforms for observability."
+                  },
+                  {
+                    q: "How do you lead architectural standards and mentor senior engineers as a Staff member?",
+                    strategy: "Draw from your Tech Lead scope at Dezzai. Explain how you decoupled code bases into DDD boundaries, set event-driven patterns, and established standards that empowered the entire engineering group."
+                  }
+                ].map((item, idx) => {
+                  return (
+                    <div
+                      key={idx}
+                      className="rounded-2xl border border-white/5 bg-white/[0.02] p-5 space-y-3"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="size-6 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0 text-xs font-black text-violet-300">
+                          Q{idx + 1}
+                        </span>
+                        <h5 className="text-sm font-bold text-white leading-relaxed">{item.q}</h5>
+                      </div>
+                      <div className="pl-9 border-l border-white/5">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-400">Positioning Strategy</p>
+                        <p className="text-xs text-white/60 mt-1 leading-relaxed">{item.strategy}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div>
-                <h5 className="text-sm font-bold text-white">Staff-Level Technical Leadership</h5>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
-                  Provide evidence of establishing engineering standards, mentoring senior developers, and making cross-team architecture decisions.
+            </motion.div>
+          )}
+
+          {activeHeroTab === "copilot" && (
+            <motion.div
+              key="copilot-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
+              className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-10 sm:p-12 backdrop-blur-sm relative overflow-hidden flex flex-col items-center justify-center gap-6 text-center w-full animate-fadeIn"
+            >
+              {/* Background glow decoration */}
+              <div className="absolute -right-32 -bottom-32 size-96 bg-radial from-violet-500/[0.08] to-transparent blur-3xl pointer-events-none" />
+              <div className="absolute -left-32 -top-32 size-96 bg-radial from-indigo-500/[0.06] to-transparent blur-3xl pointer-events-none" />
+
+              <div className="size-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-2 relative z-10">
+                <MessageSquare className="size-8 text-violet-400" />
+              </div>
+
+              <div className="space-y-2 max-w-md relative z-10">
+                <h4 className="text-xl sm:text-2xl font-black text-white">Consult Fabra AI Copilot</h4>
+                <p className="text-xs sm:text-sm text-white/55 leading-relaxed">
+                  Need custom positioning strategies, custom bullet points, or real-time simulation answers? Open the sandbox chat to interact directly with your CV coach.
                 </p>
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-cyan-500/10 bg-cyan-500/[0.02] p-4 flex gap-4">
-              <div className="size-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
-                <span className="text-xs font-black text-cyan-400">03</span>
-              </div>
-              <div>
-                <h5 className="text-sm font-bold text-white">Platform-Oriented Architecture</h5>
-                <p className="text-xs text-white/50 mt-1 leading-relaxed">
-                  Shift language from &quot;building features&quot; to &quot;creating APIs, reusable components, and developer frameworks&quot; that empower other teams.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Keyword Alignment Dashboard */}
-        <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
-          <div>
-            <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
-              <Target className="size-5 text-indigo-400" />
-              Keyword & Signal Coverage
-            </h4>
-            <p className="text-xs text-white/40 mt-1">
-              Comparison between job requirements and signals detected in your CV.
-            </p>
-          </div>
-
-          <div className="space-y-5 flex-1">
-            {/* Matching keywords */}
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-2">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                Matching Signals (CV ↔ Offer)
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {["Node.js", "High-traffic scale", "Product Ownership", "Redis caching", "Observability", "AI-assisted Workflows"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Missing keywords */}
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2">
-                <span className="size-1.5 rounded-full bg-amber-500" />
-                Missing Signals (Gaps)
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {["AI Evaluation Systems", "Staff Leadership Scope", "Platform-first wording", "E2E LLM Testing"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Offer Keywords */}
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mb-2">
-                <span className="size-1.5 rounded-full bg-white/30" />
-                Required in Offer
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {job.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1 text-xs font-semibold text-white/60"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+              <button
+                onClick={onNext}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 text-sm font-bold text-white transition hover:scale-[1.03] cursor-pointer shadow-[0_10px_30px_rgba(124,58,237,0.25)] relative z-10"
+              >
+                Open Copilot Chat
+                <ArrowRight className="size-4" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Navigation block */}
