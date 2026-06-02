@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -90,8 +91,8 @@ interface AppFeature {
 
 const APP_FEATURES: AppFeature[] = [
   {
-    id: "analisis-cv",
-    title: "Análisis de CV",
+    id: "cv-analyses",
+    title: "CV analyses",
     teaser: "Diagnóstico inteligente de tu perfil profesional",
     description: "Analiza tu currículum con IA para identificar puntos fuertes, áreas de mejora clave, legibilidad para herramientas ATS y densidad de palabras clave adaptadas a tu sector laboral.",
     icon: FileText,
@@ -100,8 +101,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "5%",
   },
   {
-    id: "biblioteca-cvs",
-    title: "Biblioteca de CVs",
+    id: "cv-library",
+    title: "CV Library",
     teaser: "Historial y versiones optimizadas en un solo lugar",
     description: "Mantén todas las versiones de tu CV organizadas y accesibles. Compara versiones anteriores, recupera secciones y realiza un seguimiento de los cambios aplicados en tu historial.",
     icon: Briefcase,
@@ -110,8 +111,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "45%",
   },
   {
-    id: "plantillas",
-    title: "Plantillas",
+    id: "templates",
+    title: "Templates",
     teaser: "Diseños profesionales de alto impacto visual",
     description: "Exporta tu perfil en plantillas elegantes y validadas por reclutadores como Linea, Marco, Pulso o Filo, ajustando los colores y la estructura de forma instantánea.",
     icon: Sparkles,
@@ -120,8 +121,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "75%",
   },
   {
-    id: "carrera-profesional",
-    title: "Carrera profesional",
+    id: "cv-editor",
+    title: "CV Editor",
     teaser: "Tu centro de control laboral a largo plazo",
     description: "Define tu rumbo profesional. Consolida toda tu experiencia laboral, feedback formal, proyectos destacados y objetivos de crecimiento en un espacio personal único y privado.",
     icon: Globe,
@@ -130,8 +131,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "10%",
   },
   {
-    id: "analisis-ofertas",
-    title: "Análisis de ofertas",
+    id: "job-analyses",
+    title: "Job analyses",
     teaser: "Mide tu compatibilidad con cada puesto",
     description: "Compara tu currículum directamente con la descripción de una oferta de empleo para obtener tu puntuación de afinidad, identificar requisitos faltantes y ajustar tu CV.",
     icon: Target,
@@ -140,8 +141,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "48%",
   },
   {
-    id: "preguntas-entrevista",
-    title: "Preguntas entrevista",
+    id: "interview-questions",
+    title: "Interview questions",
     teaser: "Prepárate con cuestionarios personalizados por IA",
     description: "Genera preguntas de entrevista basadas en la oferta que te interesa y practica tus respuestas con el feedback y consejos de posicionamiento de nuestro copiloto de IA.",
     icon: HelpCircle,
@@ -150,8 +151,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "76%",
   },
   {
-    id: "diario-trabajo",
-    title: "Diario de trabajo",
+    id: "work-journal",
+    title: "Work Journal",
     teaser: "Registra tus logros y hitos del día a día",
     description: "Anota tus victorias diarias, proyectos finalizados e hitos importantes. Convierte este historial en evidencias de valor para tus revisiones de desempeño y actualizaciones de CV.",
     icon: Trophy,
@@ -160,8 +161,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "8%",
   },
   {
-    id: "objetivos",
-    title: "Objetivos",
+    id: "objectives",
+    title: "Objectives",
     teaser: "Planifica y alcanza tus metas de desarrollo",
     description: "Establece metas profesionales a corto y largo plazo. Vincula tus actividades diarias y la retroalimentación recibida para avanzar de forma constante hacia tu próximo gran paso.",
     icon: Star,
@@ -170,8 +171,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "38%",
   },
   {
-    id: "feedback-recibido",
-    title: "Feedback recibido",
+    id: "received-feedback",
+    title: "Received feedback",
     teaser: "Centraliza las valoraciones de tu equipo",
     description: "Guarda la retroalimentación formal e informal de tus compañeros, mánagers y clientes para extraer señales claras de tus fortalezas y aspectos a mejorar.",
     icon: MessageSquare,
@@ -180,8 +181,8 @@ const APP_FEATURES: AppFeature[] = [
     left: "70%",
   },
   {
-    id: "notas-feedback",
-    title: "Notas de feedback",
+    id: "feedback-notes",
+    title: "Feedback notes",
     teaser: "Reflexiones y planes de acción personales",
     description: "Analiza el feedback recibido y documenta planes de acción concretos, notas de reuniones de desarrollo y estrategias para potenciar tus habilidades clave.",
     icon: ClipboardList,
@@ -278,12 +279,12 @@ export function LandingExperience() {
 
         // Measure card dimensions or fall back to default values
         let w = 230;
-        let h = 68;
+        let h = 58;
         const el = cardRefs.current[index];
         if (el) {
           const cardRect = el.getBoundingClientRect();
           w = cardRect.width || 230;
-          h = cardRect.height || 68;
+          h = cardRect.height || 58;
         }
 
         // Assign random starting velocity direction, magnitude targetSpeed
@@ -749,8 +750,7 @@ export function LandingExperience() {
                     <feature.icon className="size-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">{feature.title}</h3>
-                    <p className="text-[11px] text-white/50 mt-0.5">{feature.teaser}</p>
+                    <h3 className="text-base font-bold text-white">{feature.title}</h3>
                   </div>
                 </button>
               );
@@ -776,8 +776,7 @@ export function LandingExperience() {
                   <feature.icon className="size-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white tracking-wide">{feature.title}</h3>
-                  <p className="text-[11px] text-white/50 leading-tight mt-0.5">{feature.teaser}</p>
+                  <h3 className="text-base font-bold text-white tracking-wide">{feature.title}</h3>
                 </div>
               </button>
             );
@@ -952,7 +951,7 @@ export function LandingExperience() {
       {/* Screenshot detail modal */}
       <AnimatePresence>
         {selectedFeature && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 select-none">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 lg:p-5 select-none">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -968,83 +967,78 @@ export function LandingExperience() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
-              className="relative w-full max-w-6xl glass rounded-3xl overflow-hidden border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] z-10 animate-fade-in"
+              className="relative z-10 flex h-[calc(100dvh-1.5rem)] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#080910]/95 shadow-[0_32px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl animate-fade-in sm:h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] lg:h-[calc(100dvh-2.5rem)] lg:max-w-[calc(100vw-2.5rem)]"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch min-h-[380px] lg:min-h-[500px]">
-                {/* Left panel: Info */}
-                <div className="lg:col-span-4 p-8 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10">
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className={`inline-flex p-3 rounded-2xl border ${featureColorMap[selectedFeature.color].bg} ${featureColorMap[selectedFeature.color].border} ${featureColorMap[selectedFeature.color].text}`}>
-                        <selectedFeature.icon className="size-6" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedFeature(null)}
-                        className="lg:hidden h-9 w-9 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 cursor-pointer"
-                      >
-                        ✕
-                      </button>
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex flex-col gap-4 border-b border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className={`hidden shrink-0 rounded-2xl border p-3 sm:inline-flex ${featureColorMap[selectedFeature.color].bg} ${featureColorMap[selectedFeature.color].border} ${featureColorMap[selectedFeature.color].text}`}>
+                      <selectedFeature.icon className="size-5" />
                     </div>
-
-                    <div className="space-y-3">
-                      <span className={`text-[10px] font-black uppercase tracking-[0.25em] ${featureColorMap[selectedFeature.color].text}`}>
-                        Verified Feature
+                    <div className="min-w-0">
+                      <span className={`block text-[10px] font-black uppercase tracking-[0.22em] ${featureColorMap[selectedFeature.color].text}`}>
+                        Feature preview
                       </span>
-                      <h2 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                      <h2 className="truncate text-xl font-extrabold leading-tight text-white sm:text-2xl lg:text-3xl">
                         {selectedFeature.title}
                       </h2>
-                      <p className="text-sm font-semibold text-white/70">
-                        {selectedFeature.teaser}
-                      </p>
                     </div>
-
-                    <p className="text-sm leading-relaxed text-white/60">
-                      {selectedFeature.description}
-                    </p>
                   </div>
 
-                  <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <p className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-100 shadow-[0_0_28px_rgba(63,210,152,0.14)]">
+                      Real screenshots from the app
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFeature(null)}
+                      className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition hover:border-white/20 hover:bg-white/10 hover:text-white lg:static"
+                      title="Close overlay"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                <div className="min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4">
+                  <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                    <Image
+                      src="/screenshot.png"
+                      alt={`${selectedFeature.title} real app screenshot`}
+                      fill
+                      sizes="calc(100vw - 2rem)"
+                      className="object-contain select-none pointer-events-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 border-t border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+                  <p className="max-w-3xl text-sm font-medium leading-relaxed text-white/62">
+                    A real Fabra product screenshot, shown as-is so you can inspect the workspace and the detail behind each feature.
+                  </p>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <button
                       type="button"
                       onClick={() => {
                         setSelectedFeature(null);
                         scrollToFlow();
                       }}
-                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-xs font-bold text-[#090a10] hover:bg-white/90 transition select-none cursor-pointer"
+                      className="group animate-pulse-scale-glow relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-6 text-sm font-extrabold text-white select-none cursor-pointer"
                     >
-                      Try interactive simulator
+                      <Sparkles className="size-4 text-violet-200 animate-pulse" />
+                      <span>Try the Interactive Demo</span>
+                      <ArrowRight className="size-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFeature(null)}
-                      className="inline-flex h-11 items-center justify-center rounded-full border border-white/10 px-6 text-xs font-bold text-white/80 hover:bg-white/5 hover:border-white/20 transition select-none cursor-pointer"
+                    <a
+                      href={appUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-300/10 px-6 text-sm font-extrabold text-cyan-50 shadow-[0_0_26px_rgba(77,222,208,0.16)] transition hover:border-cyan-200/60 hover:bg-cyan-300/16 hover:shadow-[0_0_34px_rgba(77,222,208,0.26)] select-none"
                     >
-                      Close view
-                    </button>
-                  </div>
-                </div>
-
-                {/* Right panel: Real screenshot */}
-                <div className="lg:col-span-8 p-6 lg:p-10 bg-[#06070a]/40 flex items-center justify-center relative overflow-hidden group">
-                  {/* Close button (desktop only) */}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedFeature(null)}
-                    className="hidden lg:flex absolute top-6 right-6 h-10 w-10 rounded-full border border-white/10 items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition select-none cursor-pointer z-20"
-                    title="Close overlay"
-                  >
-                    ✕
-                  </button>
-
-                  <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center">
-                    {/* Glowing effect under image */}
-                    <div className="absolute inset-0 bg-radial from-violet-500/10 to-transparent blur-2xl opacity-50 pointer-events-none" />
-                    <img
-                      src="/screenshot.png"
-                      alt={`${selectedFeature.title} Real Feature Screenshot`}
-                      className="w-full h-auto max-h-[480px] object-contain mx-auto block rounded-lg select-none pointer-events-none"
-                    />
+                      Open Fabra
+                      <ExternalLink className="size-4" />
+                    </a>
                   </div>
                 </div>
               </div>
@@ -3808,4 +3802,3 @@ function JobMatchTrackingView({
     </div>
   );
 }
-
