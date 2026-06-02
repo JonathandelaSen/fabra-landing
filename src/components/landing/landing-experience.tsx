@@ -77,10 +77,117 @@ const keywords = [
   "user feedback iteration",
 ];
 
+interface AppFeature {
+  id: string;
+  title: string;
+  teaser: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  color: "emerald" | "violet" | "amber" | "indigo" | "cyan";
+  top: string;
+  left: string;
+}
+
+const APP_FEATURES: AppFeature[] = [
+  {
+    id: "cv-intelligence",
+    title: "AI CV Intelligence",
+    teaser: "Semantic structure & keyword parsing",
+    description: "Upload your CV and see it parsed into discrete semantic fields. Our models scan and evaluate technical alignment, providing immediate feedback on how a recruiter or automated parsing tool reads your background.",
+    icon: FileText,
+    color: "emerald",
+    top: "10%",
+    left: "5%",
+  },
+  {
+    id: "template-studio",
+    title: "Template Studio",
+    teaser: "Tailor sections & accents via AI prompts",
+    description: "Reshape your CV in seconds. Choose from premium templates and instruct the AI to optimize specific blocks, modify highlights, adjust sections order, and adjust aesthetic tones interactively.",
+    icon: Sparkles,
+    color: "violet",
+    top: "38%",
+    left: "42%",
+  },
+  {
+    id: "job-matchmaker",
+    title: "Job Matchmaker",
+    teaser: "Requirement gap & score grading",
+    description: "Compare your tailored CV against specific role opportunities. Understand your precise alignment score, identify critical gaps, missing keywords, and get structural recommendations on how to bridge the difference.",
+    icon: Target,
+    color: "amber",
+    top: "20%",
+    left: "68%",
+  },
+  {
+    id: "ai-coach",
+    title: "AI Interview Coach",
+    teaser: "Simulated prep & positioning advice",
+    description: "Talk to a dedicated AI career partner. Generate highly contextual interview questions based on the targeted role description and get real-time feedback on how to position your experience.",
+    icon: MessageSquare,
+    color: "indigo",
+    top: "68%",
+    left: "15%",
+  },
+  {
+    id: "opportunity-tracker",
+    title: "Opportunity Tracker",
+    teaser: "Kanban pipeline for active applications",
+    description: "Keep all your application processes organized. Drag-and-drop jobs through standard hiring stages, save tailored CV drafts for each role, link directly to interview prep questions, and record interview logs.",
+    icon: KanbanSquare,
+    color: "cyan",
+    top: "72%",
+    left: "58%",
+  },
+];
+
+const featureColorMap: Record<string, { bg: string; text: string; border: string; glow: string }> = {
+  emerald: {
+    bg: "bg-emerald-500/10 hover:bg-emerald-500/15",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20 hover:border-emerald-500/35",
+    glow: "shadow-[0_0_20px_rgba(16,185,129,0.08)] hover:shadow-[0_0_30px_rgba(16,185,129,0.22)]",
+  },
+  violet: {
+    bg: "bg-violet-500/10 hover:bg-violet-500/15",
+    text: "text-violet-400",
+    border: "border-violet-500/20 hover:border-violet-500/35",
+    glow: "shadow-[0_0_20px_rgba(139,92,246,0.08)] hover:shadow-[0_0_30px_rgba(139,92,246,0.22)]",
+  },
+  amber: {
+    bg: "bg-amber-500/10 hover:bg-amber-500/15",
+    text: "text-amber-400",
+    border: "border-amber-500/20 hover:border-amber-500/35",
+    glow: "shadow-[0_0_20px_rgba(245,158,11,0.08)] hover:shadow-[0_0_30px_rgba(245,158,11,0.22)]",
+  },
+  indigo: {
+    bg: "bg-indigo-500/10 hover:bg-indigo-500/15",
+    text: "text-indigo-400",
+    border: "border-indigo-500/20 hover:border-indigo-500/35",
+    glow: "shadow-[0_0_20px_rgba(99,102,241,0.08)] hover:shadow-[0_0_30px_rgba(99,102,241,0.22)]",
+  },
+  cyan: {
+    bg: "bg-cyan-500/10 hover:bg-cyan-500/15",
+    text: "text-cyan-400",
+    border: "border-cyan-500/20 hover:border-cyan-500/35",
+    glow: "shadow-[0_0_20px_rgba(6,182,212,0.08)] hover:shadow-[0_0_30px_rgba(6,182,212,0.22)]",
+  },
+};
+
 export function LandingExperience() {
   const [step, setStep] = useState<FlowStep>("idle");
+  const [selectedFeature, setSelectedFeature] = useState<AppFeature | null>(null);
   const flowRef = useRef<HTMLElement | null>(null);
   const isScrollingRef = useRef(false);
+
+  useEffect(() => {
+    if (!selectedFeature) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedFeature(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedFeature]);
 
   // Template Customizer Sandbox States
   const [selectedTemplate, setSelectedTemplate] = useState<"linea" | "marco" | "pulso" | "filo">("pulso");
@@ -247,44 +354,113 @@ export function LandingExperience() {
     <main className="relative isolate min-h-screen overflow-hidden">
       <div className="noise" />
 
-      <section className="relative flex min-h-[100svh] items-center px-5 pt-24 sm:px-8 lg:px-12 snap-start snap-always" id="top">
+      <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top">
         <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
-        <div className="mx-auto w-full max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, ease: "easeOut" }}
-            className="max-w-4xl"
-          >
-            <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl">
-              FABRA
-            </p>
-            <h1 className="text-balance text-5xl font-semibold leading-[0.95] text-white sm:text-7xl lg:text-8xl">
-              Craft your career, your way.
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68">
-              Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
-            </p>
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-              {/* Interactive Demo Glowing Button */}
-              <button
-                type="button"
-                onClick={scrollToFlow}
-                className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
-              >
-                <Sparkles className="size-5 text-violet-200 animate-pulse" />
-                <span>Try the Interactive Demo</span>
-                <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
-              </button>
+        <div className="w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
+            <motion.div
+              initial={{ opacity: 0, y: 22 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.75, ease: "easeOut" }}
+              className="lg:col-span-7 w-full text-left"
+            >
+              <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl">
+                FABRA
+              </p>
+              <h1 className="text-balance text-5xl font-semibold leading-[0.95] text-white sm:text-7xl lg:text-8xl">
+                Craft your career, your way.
+              </h1>
+              <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68">
+                Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
+              </p>
+              <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+                {/* Interactive Demo Glowing Button */}
+                <button
+                  type="button"
+                  onClick={scrollToFlow}
+                  className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
+                >
+                  <Sparkles className="size-5 text-violet-200 animate-pulse" />
+                  <span>Try the Interactive Demo</span>
+                  <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
+                </button>
 
-              <a
-                href={appUrl}
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
-              >
-                Start crafting with Fabra
-              </a>
+                <a
+                  href={appUrl}
+                  className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
+                >
+                  Start crafting with Fabra
+                </a>
+              </div>
+            </motion.div>
+
+            {/* Floating features canvas (Desktop only) */}
+            <div className="lg:col-span-5 hidden lg:block relative min-h-[480px] w-full select-none">
+              {APP_FEATURES.map((feature, index) => {
+                const styles = featureColorMap[feature.color];
+                return (
+                  <motion.button
+                    key={feature.id}
+                    custom={index}
+                    animate={{
+                      y: [0, -14, 0],
+                      x: [0, index % 2 === 0 ? 8 : -8, 0],
+                    }}
+                    transition={{
+                      duration: 6 + index * 1.2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    whileHover={{
+                      scale: 1.05,
+                      y: -4,
+                      zIndex: 30,
+                    }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setSelectedFeature(feature)}
+                    className={`absolute p-4 rounded-2xl glass flex items-center gap-4 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 select-none z-10 max-w-[280px]`}
+                    style={{ top: feature.top, left: feature.left }}
+                  >
+                    <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
+                      <feature.icon className="size-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white tracking-wide">{feature.title}</h3>
+                      <p className="text-[11px] text-white/50 leading-tight mt-0.5">{feature.teaser}</p>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
-          </motion.div>
+
+            {/* Mobile feature cards (Mobile/Tablet only) */}
+            <div className="lg:hidden w-full mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-1 sm:col-span-2 mb-2">
+                <span className="text-xs font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+                  Core Features
+                </span>
+                <h2 className="text-xl font-bold text-white mt-1">Explore real capabilities</h2>
+              </div>
+              {APP_FEATURES.map((feature) => {
+                const styles = featureColorMap[feature.color];
+                return (
+                  <button
+                    key={feature.id}
+                    onClick={() => setSelectedFeature(feature)}
+                    className={`p-4 rounded-2xl glass flex items-center gap-4 text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all w-full`}
+                  >
+                    <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
+                      <feature.icon className="size-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">{feature.title}</h3>
+                      <p className="text-[11px] text-white/50 mt-0.5">{feature.teaser}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -451,6 +627,110 @@ export function LandingExperience() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Screenshot detail modal */}
+      <AnimatePresence>
+        {selectedFeature && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 select-none">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedFeature(null)}
+              className="absolute inset-0 bg-[#06070a]/92 backdrop-blur-md cursor-zoom-out"
+            />
+
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
+              className="relative w-full max-w-6xl glass rounded-3xl overflow-hidden border border-white/10 shadow-[0_32px_80px_rgba(0,0,0,0.6)] z-10 animate-fade-in"
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch min-h-[380px] lg:min-h-[500px]">
+                {/* Left panel: Info */}
+                <div className="lg:col-span-4 p-8 lg:p-10 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-white/10">
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className={`inline-flex p-3 rounded-2xl border ${featureColorMap[selectedFeature.color].bg} ${featureColorMap[selectedFeature.color].border} ${featureColorMap[selectedFeature.color].text}`}>
+                        <selectedFeature.icon className="size-6" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFeature(null)}
+                        className="lg:hidden h-9 w-9 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/5 cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <span className={`text-[10px] font-black uppercase tracking-[0.25em] ${featureColorMap[selectedFeature.color].text}`}>
+                        Verified Feature
+                      </span>
+                      <h2 className="text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                        {selectedFeature.title}
+                      </h2>
+                      <p className="text-sm font-semibold text-white/70">
+                        {selectedFeature.teaser}
+                      </p>
+                    </div>
+
+                    <p className="text-sm leading-relaxed text-white/60">
+                      {selectedFeature.description}
+                    </p>
+                  </div>
+
+                  <div className="mt-8 pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFeature(null);
+                        scrollToFlow();
+                      }}
+                      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-6 text-xs font-bold text-[#090a10] hover:bg-white/90 transition select-none cursor-pointer"
+                    >
+                      Try interactive simulator
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFeature(null)}
+                      className="inline-flex h-11 items-center justify-center rounded-full border border-white/10 px-6 text-xs font-bold text-white/80 hover:bg-white/5 hover:border-white/20 transition select-none cursor-pointer"
+                    >
+                      Close view
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right panel: Real screenshot */}
+                <div className="lg:col-span-8 p-6 lg:p-10 bg-[#06070a]/40 flex items-center justify-center relative overflow-hidden group">
+                  {/* Close button (desktop only) */}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFeature(null)}
+                    className="hidden lg:flex absolute top-6 right-6 h-10 w-10 rounded-full border border-white/10 items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition select-none cursor-pointer z-20"
+                    title="Close overlay"
+                  >
+                    ✕
+                  </button>
+
+                  <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center">
+                    {/* Glowing effect under image */}
+                    <div className="absolute inset-0 bg-radial from-violet-500/10 to-transparent blur-2xl opacity-50 pointer-events-none" />
+                    <img
+                      src="/screenshot.png"
+                      alt={`${selectedFeature.title} Real Feature Screenshot`}
+                      className="w-full h-auto max-h-[480px] object-contain mx-auto block rounded-lg select-none pointer-events-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
