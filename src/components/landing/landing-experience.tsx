@@ -20,6 +20,14 @@ export function LandingExperience() {
 
   const heroRef = useRef<HTMLElement | null>(null);
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const lettersRectRef = useRef<{
+    element: HTMLSpanElement;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }[]>([]);
   const hoveredRef = useRef<string | null>(null);
   const bubblesRef = useRef<PhysicsBubble[]>([]);
   const containerWidthRef = useRef<number>(0);
@@ -31,6 +39,33 @@ export function LandingExperience() {
     // Only run physics simulation on screen widths >= 1024 (desktop)
     if (typeof window === "undefined") return;
 
+    const measureLetters = () => {
+      if (!heroRef.current || !letterRefs.current) return;
+      const heroRect = heroRef.current.getBoundingClientRect();
+      lettersRectRef.current = letterRefs.current
+        .map((el) => {
+          if (!el) return null;
+          
+          // Temporarily remove transform to measure original bounds accurately
+          const prevTransform = el.style.transform;
+          el.style.transform = "none";
+          
+          const letterRect = el.getBoundingClientRect();
+          
+          // Restore transform
+          el.style.transform = prevTransform;
+          
+          return {
+            element: el,
+            x: letterRect.left - heroRect.left,
+            y: letterRect.top - heroRect.top,
+            width: letterRect.width,
+            height: letterRect.height,
+          };
+        })
+        .filter((item): item is { element: HTMLSpanElement; x: number; y: number; width: number; height: number } => item !== null);
+    };
+
     const initPhysics = () => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -39,6 +74,8 @@ export function LandingExperience() {
 
       containerWidthRef.current = containerW;
       containerHeightRef.current = containerH;
+
+      measureLetters();
 
       // Initialize bubble structures
       const newBubbles: PhysicsBubble[] = APP_FEATURES.map((feature, index) => {
@@ -91,6 +128,8 @@ export function LandingExperience() {
       containerWidthRef.current = newW;
       containerHeightRef.current = newH;
 
+      measureLetters();
+
       if (bubblesRef.current.length === 0) {
         initPhysics();
         return;
@@ -119,6 +158,9 @@ export function LandingExperience() {
     };
 
     window.addEventListener("resize", handleResize);
+
+    // Periodically update coordinates (every 1s) to correct any layout shifts/late font loads
+    const intervalId = setInterval(measureLetters, 1000);
 
     // Animation frame update
     const updatePhysics = () => {
@@ -256,14 +298,65 @@ export function LandingExperience() {
         bubble.y = Math.min(Math.max(bubble.y, pad), containerH - pad - bubble.height);
       }
 
-      // 3. Mutate DOM styles directly for high performance
+      // 3. Mutate DOM styles directly for high performance (handling hover scale dynamically)
       for (let i = 0; i < numBubbles; i++) {
         const bubble = bubbles[i];
         const el = cardRefs.current[bubble.featureIndex];
         if (el) {
           const offsetX = bubble.x - bubble.initialX;
           const offsetY = bubble.y - bubble.initialY;
-          el.style.transform = `translate3d(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px, 0px)`;
+          const isHovered = hoveredRef.current === bubble.id;
+          const scale = isHovered ? " scale(1.05)" : " scale(1)";
+          el.style.transform = `translate3d(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px, 0px)${scale}`;
+        }
+      }
+
+      // 4. Update letter intersections and styles
+      const letterRects = lettersRectRef.current;
+      for (let j = 0; j < letterRects.length; j++) {
+        const letter = letterRects[j];
+        let isIntersecting = false;
+
+        for (let i = 0; i < numBubbles; i++) {
+          const bubble = bubbles[i];
+          
+          // Calculate precise center-based overlapping for responsive feedback
+          const cardCenterX = bubble.x + bubble.width / 2;
+          const cardCenterY = bubble.y + bubble.height / 2;
+          const activeHalfWidth = 40; // 80px total width around the center of the card
+          const activeHalfHeight = bubble.height / 2 + 10; // Vertical coverage
+
+          if (
+            cardCenterX - activeHalfWidth < letter.x + letter.width &&
+            cardCenterX + activeHalfWidth > letter.x &&
+            cardCenterY - activeHalfHeight < letter.y + letter.height &&
+            cardCenterY + activeHalfHeight > letter.y
+          ) {
+            isIntersecting = true;
+            break;
+          }
+        }
+
+        if (isIntersecting) {
+          if (letter.element.dataset.active !== "true") {
+            letter.element.dataset.active = "true";
+            letter.element.style.transform = "scale(1.22) translateY(-4px)";
+            letter.element.style.textShadow = "0 0 10px rgba(0, 255, 255, 0.7), 0 0 25px rgba(255, 0, 160, 0.5)";
+            letter.element.style.backgroundImage = "linear-gradient(135deg, #ff007f 0%, #7f00ff 50%, #00ffff 100%)";
+            letter.element.style.webkitBackgroundClip = "text";
+            letter.element.style.backgroundClip = "text";
+            letter.element.style.webkitTextFillColor = "transparent";
+          }
+        } else {
+          if (letter.element.dataset.active === "true") {
+            letter.element.dataset.active = "false";
+            letter.element.style.transform = "";
+            letter.element.style.textShadow = "";
+            letter.element.style.backgroundImage = "";
+            letter.element.style.webkitBackgroundClip = "";
+            letter.element.style.backgroundClip = "";
+            letter.element.style.webkitTextFillColor = "";
+          }
         }
       }
 
@@ -278,6 +371,7 @@ export function LandingExperience() {
 
     return () => {
       clearTimeout(timer);
+      clearInterval(intervalId);
       window.removeEventListener("resize", handleResize);
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
@@ -510,6 +604,7 @@ export function LandingExperience() {
       <HeroSection
         heroRef={heroRef}
         cardRefs={cardRefs}
+        letterRefs={letterRefs}
         hoveredRef={hoveredRef}
         onFeatureSelect={setSelectedFeature}
         onDemoClick={scrollToFlow}

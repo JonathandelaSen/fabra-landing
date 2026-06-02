@@ -7,12 +7,13 @@ import { APP_FEATURES, AppFeature, featureColorMap } from "./landing-data";
 type HeroSectionProps = {
   heroRef: React.RefObject<HTMLElement | null>;
   cardRefs: React.RefObject<(HTMLButtonElement | null)[]>;
+  letterRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   hoveredRef: React.RefObject<string | null>;
   onFeatureSelect: (feature: AppFeature) => void;
   onDemoClick: () => void;
 };
 
-export function HeroSection({ heroRef, cardRefs, hoveredRef, onFeatureSelect, onDemoClick }: HeroSectionProps) {
+export function HeroSection({ heroRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect, onDemoClick }: HeroSectionProps) {
   return (
     <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef}>
       <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
@@ -21,7 +22,19 @@ export function HeroSection({ heroRef, cardRefs, hoveredRef, onFeatureSelect, on
         {/* Title Header (Goes in front of cards: z-30) */}
         <div className="relative z-30 pointer-events-auto">
           <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl select-none">
-            FABRA
+            {["F", "A", "B", "R", "A"].map((char, idx) => (
+              <span
+                key={idx}
+                ref={(el) => {
+                  if (letterRefs.current) {
+                    letterRefs.current[idx] = el;
+                  }
+                }}
+                className="inline-block transition-all duration-500 ease-out transform"
+              >
+                {char}
+              </span>
+            ))}
           </p>
         </div>
 
@@ -101,7 +114,7 @@ export function HeroSection({ heroRef, cardRefs, hoveredRef, onFeatureSelect, on
               onMouseEnter={() => { hoveredRef.current = feature.id; }}
               onMouseLeave={() => { hoveredRef.current = null; }}
               onClick={() => onFeatureSelect(feature)}
-              className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 pointer-events-auto w-[230px] scale-100 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] z-[20]`}
+              className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-[background,border,box-shadow,opacity] duration-300 pointer-events-auto w-[230px] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] z-[20]`}
               style={{ top: feature.top, left: feature.left }}
             >
               <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
