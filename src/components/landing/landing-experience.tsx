@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -11,7 +10,6 @@ import {
   ClipboardList,
   ExternalLink,
   FileText,
-  Globe,
   HelpCircle,
   KanbanSquare,
   Loader2,
@@ -22,228 +20,16 @@ import {
   Trophy,
 } from "lucide-react";
 import { appUrl, cvAnalysis, job, profile } from "@/lib/demo-data";
-
-type FlowStep =
-  | "idle"
-  | "uploading"
-  | "ready"
-  | "loading"
-  | "analysis"
-  | "templates"
-  | "studio"
-  | "completion"
-  | "job-loading"
-  | "job-analysis"
-  | "job-chat"
-  | "job-tracking";
-
-const stepper = [
-  { key: "upload", label: "Upload CV" },
-  { key: "analysis", label: "AI analysis" },
-  { key: "studio", label: "Template Studio" },
-  { key: "match", label: "Job Match" },
-] as const;
-
-const keywords = [
-  "backend expertise",
-  "Node.js",
-  "MongoDB",
-  "React",
-  "modern web architectures",
-  "system design",
-  "DDD",
-  "CQRS",
-  "event-driven systems",
-  "AI-first development",
-  "DataDog",
-  "Express",
-  "Redis",
-  "TypeScript",
-  "Kotlin",
-  "Swift",
-  "Microservices",
-  "Stripe",
-  "Scalable Systems",
-  "Frontend",
-  "User Experience",
-  "Developer Productivity",
-  "product discovery",
-  "system performance",
-  "product health",
-  "Android",
-  "iOS",
-  "mobile applications",
-  "web applications",
-  "revenue generation",
-  "user feedback iteration",
-];
-
-interface AppFeature {
-  id: string;
-  title: string;
-  teaser: string;
-  description: string;
-  icon: React.ComponentType<any>;
-  color: "emerald" | "violet" | "amber" | "indigo" | "cyan" | "rose";
-  top: string;
-  left: string;
-}
-
-const APP_FEATURES: AppFeature[] = [
-  {
-    id: "cv-analyses",
-    title: "CV analyses",
-    teaser: "Diagnóstico inteligente de tu perfil profesional",
-    description: "Analiza tu currículum con IA para identificar puntos fuertes, áreas de mejora clave, legibilidad para herramientas ATS y densidad de palabras clave adaptadas a tu sector laboral.",
-    icon: FileText,
-    color: "emerald",
-    top: "5%",
-    left: "5%",
-  },
-  {
-    id: "cv-library",
-    title: "CV Library",
-    teaser: "Historial y versiones optimizadas en un solo lugar",
-    description: "Mantén todas las versiones de tu CV organizadas y accesibles. Compara versiones anteriores, recupera secciones y realiza un seguimiento de los cambios aplicados en tu historial.",
-    icon: Briefcase,
-    color: "indigo",
-    top: "18%",
-    left: "45%",
-  },
-  {
-    id: "templates",
-    title: "Templates",
-    teaser: "Diseños profesionales de alto impacto visual",
-    description: "Exporta tu perfil en plantillas elegantes y validadas por reclutadores como Linea, Marco, Pulso o Filo, ajustando los colores y la estructura de forma instantánea.",
-    icon: Sparkles,
-    color: "violet",
-    top: "8%",
-    left: "75%",
-  },
-  {
-    id: "cv-editor",
-    title: "CV Editor",
-    teaser: "Tu centro de control laboral a largo plazo",
-    description: "Define tu rumbo profesional. Consolida toda tu experiencia laboral, feedback formal, proyectos destacados y objetivos de crecimiento en un espacio personal único y privado.",
-    icon: Globe,
-    color: "cyan",
-    top: "32%",
-    left: "10%",
-  },
-  {
-    id: "job-analyses",
-    title: "Job analyses",
-    teaser: "Mide tu compatibilidad con cada puesto",
-    description: "Compara tu currículum directamente con la descripción de una oferta de empleo para obtener tu puntuación de afinidad, identificar requisitos faltantes y ajustar tu CV.",
-    icon: Target,
-    color: "amber",
-    top: "45%",
-    left: "48%",
-  },
-  {
-    id: "interview-questions",
-    title: "Interview questions",
-    teaser: "Prepárate con cuestionarios personalizados por IA",
-    description: "Genera preguntas de entrevista basadas en la oferta que te interesa y practica tus respuestas con el feedback y consejos de posicionamiento de nuestro copiloto de IA.",
-    icon: HelpCircle,
-    color: "rose",
-    top: "35%",
-    left: "76%",
-  },
-  {
-    id: "work-journal",
-    title: "Work Journal",
-    teaser: "Registra tus logros y hitos del día a día",
-    description: "Anota tus victorias diarias, proyectos finalizados e hitos importantes. Convierte este historial en evidencias de valor para tus revisiones de desempeño y actualizaciones de CV.",
-    icon: Trophy,
-    color: "emerald",
-    top: "60%",
-    left: "8%",
-  },
-  {
-    id: "objectives",
-    title: "Objectives",
-    teaser: "Planifica y alcanza tus metas de desarrollo",
-    description: "Establece metas profesionales a corto y largo plazo. Vincula tus actividades diarias y la retroalimentación recibida para avanzar de forma constante hacia tu próximo gran paso.",
-    icon: Star,
-    color: "cyan",
-    top: "75%",
-    left: "38%",
-  },
-  {
-    id: "received-feedback",
-    title: "Received feedback",
-    teaser: "Centraliza las valoraciones de tu equipo",
-    description: "Guarda la retroalimentación formal e informal de tus compañeros, mánagers y clientes para extraer señales claras de tus fortalezas y aspectos a mejorar.",
-    icon: MessageSquare,
-    color: "violet",
-    top: "66%",
-    left: "70%",
-  },
-  {
-    id: "feedback-notes",
-    title: "Feedback notes",
-    teaser: "Reflexiones y planes de acción personales",
-    description: "Analiza el feedback recibido y documenta planes de acción concretos, notas de reuniones de desarrollo y estrategias para potenciar tus habilidades clave.",
-    icon: ClipboardList,
-    color: "indigo",
-    top: "84%",
-    left: "12%",
-  },
-];
-
-interface PhysicsBubble {
-  id: string;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  width: number;
-  height: number;
-  targetSpeed: number;
-  initialX: number;
-  initialY: number;
-  featureIndex: number;
-}
-
-const featureColorMap: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-  emerald: {
-    bg: "bg-emerald-500/10 hover:bg-emerald-500/15",
-    text: "text-emerald-400",
-    border: "border-emerald-500/20 hover:border-emerald-500/35",
-    glow: "shadow-[0_0_20px_rgba(16,185,129,0.08)] hover:shadow-[0_0_30px_rgba(16,185,129,0.22)]",
-  },
-  violet: {
-    bg: "bg-violet-500/10 hover:bg-violet-500/15",
-    text: "text-violet-400",
-    border: "border-violet-500/20 hover:border-violet-500/35",
-    glow: "shadow-[0_0_20px_rgba(139,92,246,0.08)] hover:shadow-[0_0_30px_rgba(139,92,246,0.22)]",
-  },
-  amber: {
-    bg: "bg-amber-500/10 hover:bg-amber-500/15",
-    text: "text-amber-400",
-    border: "border-amber-500/20 hover:border-amber-500/35",
-    glow: "shadow-[0_0_20px_rgba(245,158,11,0.08)] hover:shadow-[0_0_30px_rgba(245,158,11,0.22)]",
-  },
-  indigo: {
-    bg: "bg-indigo-500/10 hover:bg-indigo-500/15",
-    text: "text-indigo-400",
-    border: "border-indigo-500/20 hover:border-indigo-500/35",
-    glow: "shadow-[0_0_20px_rgba(99,102,241,0.08)] hover:shadow-[0_0_30px_rgba(99,102,241,0.22)]",
-  },
-  cyan: {
-    bg: "bg-cyan-500/10 hover:bg-cyan-500/15",
-    text: "text-cyan-400",
-    border: "border-cyan-500/20 hover:border-cyan-500/35",
-    glow: "shadow-[0_0_20px_rgba(6,182,212,0.08)] hover:shadow-[0_0_30px_rgba(6,182,212,0.22)]",
-  },
-  rose: {
-    bg: "bg-rose-500/10 hover:bg-rose-500/15",
-    text: "text-rose-400",
-    border: "border-rose-500/20 hover:border-rose-500/35",
-    glow: "shadow-[0_0_20px_rgba(244,63,94,0.08)] hover:shadow-[0_0_30px_rgba(244,63,94,0.22)]",
-  },
-};
+import { FeaturePreviewModal } from "./feature-preview-modal";
+import { HeroSection } from "./hero-section";
+import {
+  APP_FEATURES,
+  AppFeature,
+  FlowStep,
+  keywords,
+  PhysicsBubble,
+  stepper,
+} from "./landing-data";
 
 export function LandingExperience() {
   const [step, setStep] = useState<FlowStep>("idle");
@@ -596,7 +382,7 @@ export function LandingExperience() {
     }
   };
 
-  // Asistencia por JavaScript para scroll dirigido extremadamente fluido
+  // JavaScript support for directed smooth scrolling
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (isScrollingRef.current) {
@@ -691,119 +477,94 @@ export function LandingExperience() {
     <main className="relative isolate min-h-screen overflow-hidden">
       <div className="noise" />
 
-      <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef as any}>
-        <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
+      <HeroSection
+        heroRef={heroRef}
+        cardRefs={cardRefs}
+        hoveredRef={hoveredRef}
+        onFeatureSelect={setSelectedFeature}
+        onDemoClick={scrollToFlow}
+      />
 
-        <div className="w-full pointer-events-none flex flex-col items-center justify-center text-center">
-          
-          {/* Title Header (Goes in front of cards: z-30) */}
-          <div className="relative z-30 pointer-events-auto">
-            <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl select-none">
-              FABRA
-            </p>
-          </div>
+      <FlowSection
+        flowRef={flowRef}
+        step={step}
+        selectedTemplate={selectedTemplate}
+        accentColor={accentColor}
+        skillsPosition={skillsPosition}
+        isSummaryCondensed={isSummaryCondensed}
+        isSuggestionsApplied={isSuggestionsApplied}
+        onTabClick={handleTabClick}
+        onStepChange={setStep}
+        onAnalyze={analyze}
+        onResetStudioStates={resetStudioStates}
+        onSelectedTemplateChange={setSelectedTemplate}
+        onAccentColorChange={setAccentColor}
+        onSkillsPositionChange={setSkillsPosition}
+        onSummaryCondensedChange={setIsSummaryCondensed}
+        onSuggestionsAppliedChange={setIsSuggestionsApplied}
+      />
 
-          {/* Subtitle & Actions (Goes behind cards: z-10) */}
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.75, ease: "easeOut" }}
-            className="w-full text-center flex flex-col items-center justify-center pointer-events-auto relative z-10"
-          >
-            <h1 className="text-balance text-5xl font-semibold leading-[0.95] text-white sm:text-7xl lg:text-8xl">
-              Craft your career, your way.
-            </h1>
-            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68 mx-auto">
-              Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
-            </p>
-            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center justify-center w-full">
-              {/* Interactive Demo Glowing Button */}
-              <button
-                type="button"
-                onClick={scrollToFlow}
-                className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
-              >
-                <Sparkles className="size-5 text-violet-200 animate-pulse" />
-                <span>Try the Interactive Demo</span>
-                <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
-              </button>
+      <FeaturePreviewModal
+        selectedFeature={selectedFeature}
+        onClose={() => setSelectedFeature(null)}
+        onDemoClick={() => {
+          setSelectedFeature(null);
+          scrollToFlow();
+        }}
+      />
+    </main>
+  );
+}
 
-              <a
-                href={appUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-300/10 px-8 text-base font-extrabold text-cyan-50 shadow-[0_0_26px_rgba(77,222,208,0.16)] transition hover:border-cyan-200/60 hover:bg-cyan-300/16 hover:shadow-[0_0_34px_rgba(77,222,208,0.26)] select-none"
-              >
-                Open Fabra
-                <ExternalLink className="size-4" />
-              </a>
-            </div>
-           </motion.div>
 
-          {/* Mobile feature cards (Mobile/Tablet only) */}
-          <div className="lg:hidden w-full mt-16 grid grid-cols-1 sm:grid-cols-2 gap-4 pointer-events-auto text-left">
-            <div className="col-span-1 sm:col-span-2 mb-2">
-              <span className="text-xs font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                Core Features
-              </span>
-              <h2 className="text-xl font-bold text-white mt-1">Explore real capabilities</h2>
-            </div>
-            {APP_FEATURES.map((feature) => {
-              const styles = featureColorMap[feature.color];
-              return (
-                <button
-                  key={feature.id}
-                  onClick={() => setSelectedFeature(feature)}
-                  className={`p-4 rounded-2xl glass flex items-center gap-4 text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all w-full`}
-                >
-                  <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
-                    <feature.icon className="size-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">{feature.title}</h3>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+type FlowSectionProps = {
+  flowRef: React.RefObject<HTMLElement | null>;
+  step: FlowStep;
+  selectedTemplate: "linea" | "marco" | "pulso" | "filo";
+  accentColor: "default" | "cool";
+  skillsPosition: "bottom" | "top";
+  isSummaryCondensed: boolean;
+  isSuggestionsApplied: boolean;
+  onTabClick: (tabKey: "upload" | "analysis" | "studio" | "match") => void;
+  onStepChange: React.Dispatch<React.SetStateAction<FlowStep>>;
+  onAnalyze: () => void;
+  onResetStudioStates: () => void;
+  onSelectedTemplateChange: React.Dispatch<React.SetStateAction<"linea" | "marco" | "pulso" | "filo">>;
+  onAccentColorChange: React.Dispatch<React.SetStateAction<"default" | "cool">>;
+  onSkillsPositionChange: React.Dispatch<React.SetStateAction<"bottom" | "top">>;
+  onSummaryCondensedChange: React.Dispatch<React.SetStateAction<boolean>>;
+  onSuggestionsAppliedChange: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
-        {/* Floating Cards (Desktop only - Behind title "FABRA" but in front of rest of content) */}
-        <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none hidden lg:block select-none">
-          {APP_FEATURES.map((feature, index) => {
-            const styles = featureColorMap[feature.color];
-            return (
-              <button
-                key={feature.id}
-                ref={(el) => { cardRefs.current[index] = el; }}
-                onMouseEnter={() => { hoveredRef.current = feature.id; }}
-                onMouseLeave={() => { hoveredRef.current = null; }}
-                onClick={() => setSelectedFeature(feature)}
-                className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 pointer-events-auto w-[230px] scale-100 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] z-[20]`}
-                style={{ top: feature.top, left: feature.left }}
-              >
-                <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
-                  <feature.icon className="size-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white tracking-wide">{feature.title}</h3>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
+function FlowSection({
+  flowRef,
+  step,
+  selectedTemplate,
+  accentColor,
+  skillsPosition,
+  isSummaryCondensed,
+  isSuggestionsApplied,
+  onTabClick,
+  onStepChange,
+  onAnalyze,
+  onResetStudioStates,
+  onSelectedTemplateChange,
+  onAccentColorChange,
+  onSkillsPositionChange,
+  onSummaryCondensedChange,
+  onSuggestionsAppliedChange,
+}: FlowSectionProps) {
+  return (
+    <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
           {["job-loading", "job-analysis", "job-chat", "job-tracking"].includes(step) ? (
             <JobMatchFlowHeader
               current={step}
-              onStepChange={(newStep) => setStep(newStep)}
-              onBackToCV={() => setStep("completion")}
+              onStepChange={(newStep) => onStepChange(newStep)}
+              onBackToCV={() => onStepChange("completion")}
             />
           ) : (
-            <FlowHeader current={step} onTabClick={handleTabClick} />
+            <FlowHeader current={step} onTabClick={onTabClick} />
           )}
           <GuideBanner step={step} />
           <AnimatePresence mode="wait">
@@ -816,7 +577,7 @@ export function LandingExperience() {
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-8"
               >
-                <AnalysisExperience onImprove={() => setStep("templates")} />
+                <AnalysisExperience onImprove={() => onStepChange("templates")} />
               </motion.div>
             ) : step === "templates" ? (
               <motion.div
@@ -828,9 +589,9 @@ export function LandingExperience() {
                 className="mt-8"
               >
                 <TemplateSelectionView onSelectTemplate={(tpl) => {
-                  setSelectedTemplate(tpl);
-                  resetStudioStates();
-                  setStep("studio");
+                  onSelectedTemplateChange(tpl);
+                  onResetStudioStates();
+                  onStepChange("studio");
                 }} />
               </motion.div>
             ) : step === "studio" ? (
@@ -846,18 +607,18 @@ export function LandingExperience() {
                   key={selectedTemplate}
                   template={selectedTemplate}
                   onChangeTemplate={() => {
-                    resetStudioStates();
-                    setStep("templates");
+                    onResetStudioStates();
+                    onStepChange("templates");
                   }}
-                  onFinalize={() => setStep("completion")}
+                  onFinalize={() => onStepChange("completion")}
                   accentColor={accentColor}
-                  setAccentColor={setAccentColor}
+                  setAccentColor={onAccentColorChange}
                   skillsPosition={skillsPosition}
-                  setSkillsPosition={setSkillsPosition}
+                  setSkillsPosition={onSkillsPositionChange}
                   isSummaryCondensed={isSummaryCondensed}
-                  setIsSummaryCondensed={setIsSummaryCondensed}
+                  setIsSummaryCondensed={onSummaryCondensedChange}
                   isSuggestionsApplied={isSuggestionsApplied}
-                  setIsSuggestionsApplied={setIsSuggestionsApplied}
+                  setIsSuggestionsApplied={onSuggestionsAppliedChange}
                 />
               </motion.div>
             ) : step === "completion" ? (
@@ -875,7 +636,7 @@ export function LandingExperience() {
                   skillsPosition={skillsPosition}
                   isSummaryCondensed={isSummaryCondensed}
                   isSuggestionsApplied={isSuggestionsApplied}
-                  onStartJobMatch={() => setStep("job-loading")}
+                  onStartJobMatch={() => onStepChange("job-loading")}
                 />
               </motion.div>
             ) : step === "job-loading" ? (
@@ -887,7 +648,7 @@ export function LandingExperience() {
                 transition={{ duration: 0.42 }}
                 className="mt-10"
               >
-                <JobMatchLoadingExperience onComplete={() => setStep("job-analysis")} />
+                <JobMatchLoadingExperience onComplete={() => onStepChange("job-analysis")} />
               </motion.div>
             ) : step === "job-analysis" ? (
               <motion.div
@@ -899,8 +660,8 @@ export function LandingExperience() {
                 className="mt-8"
               >
                 <JobMatchAnalysisView 
-                  onNext={() => setStep("job-chat")} 
-                  onBack={() => setStep("completion")} 
+                  onNext={() => onStepChange("job-chat")} 
+                  onBack={() => onStepChange("completion")} 
                 />
               </motion.div>
             ) : step === "job-chat" ? (
@@ -913,8 +674,8 @@ export function LandingExperience() {
                 className="mt-8"
               >
                 <JobMatchChatView 
-                  onNext={() => setStep("job-tracking")} 
-                  onBack={() => setStep("job-analysis")} 
+                  onNext={() => onStepChange("job-tracking")} 
+                  onBack={() => onStepChange("job-analysis")} 
                 />
               </motion.div>
             ) : step === "job-tracking" ? (
@@ -927,8 +688,8 @@ export function LandingExperience() {
                 className="mt-8"
               >
                 <JobMatchTrackingView 
-                  onBack={() => setStep("job-chat")} 
-                  onResetAll={() => setStep("ready")} 
+                  onBack={() => onStepChange("job-chat")} 
+                  onResetAll={() => onStepChange("ready")} 
                 />
               </motion.div>
             ) : step === "loading" ? (
@@ -951,112 +712,14 @@ export function LandingExperience() {
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-10"
               >
-                <UploadExperience step={step} onStartUpload={() => setStep("uploading")} onAnalyze={analyze} />
+                <UploadExperience step={step} onStartUpload={() => onStepChange("uploading")} onAnalyze={onAnalyze} />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </section>
 
-      {/* Screenshot detail modal */}
-      <AnimatePresence>
-        {selectedFeature && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 lg:p-5 select-none">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedFeature(null)}
-              className="absolute inset-0 bg-[#06070a]/92 backdrop-blur-md cursor-zoom-out"
-            />
 
-            {/* Modal Card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
-              className="relative z-10 flex h-[calc(100dvh-1.5rem)] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#080910]/95 shadow-[0_32px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl animate-fade-in sm:h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] lg:h-[calc(100dvh-2.5rem)] lg:max-w-[calc(100vw-2.5rem)]"
-            >
-              <div className="flex min-h-0 flex-1 flex-col">
-                <div className="flex flex-col gap-4 border-b border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className={`hidden shrink-0 rounded-2xl border p-3 sm:inline-flex ${featureColorMap[selectedFeature.color].bg} ${featureColorMap[selectedFeature.color].border} ${featureColorMap[selectedFeature.color].text}`}>
-                      <selectedFeature.icon className="size-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className={`block text-[10px] font-black uppercase tracking-[0.22em] ${featureColorMap[selectedFeature.color].text}`}>
-                        Feature preview
-                      </span>
-                      <h2 className="truncate text-xl font-extrabold leading-tight text-white sm:text-2xl lg:text-3xl">
-                        {selectedFeature.title}
-                      </h2>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-                    <p className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-100 shadow-[0_0_28px_rgba(63,210,152,0.14)]">
-                      Real screenshots from the app
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedFeature(null)}
-                      className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/50 transition hover:border-white/20 hover:bg-white/10 hover:text-white lg:static"
-                      title="Close overlay"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-
-                <div className="min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4">
-                  <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-                    <Image
-                      src="/screenshot.png"
-                      alt={`${selectedFeature.title} real app screenshot`}
-                      fill
-                      sizes="calc(100vw - 2rem)"
-                      className="object-contain select-none pointer-events-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 border-t border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
-                  <p className="max-w-3xl text-sm font-medium leading-relaxed text-white/62">
-                    A real Fabra product screenshot, shown as-is so you can inspect the workspace and the detail behind each feature.
-                  </p>
-
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedFeature(null);
-                        scrollToFlow();
-                      }}
-                      className="group animate-pulse-scale-glow relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-6 text-sm font-extrabold text-white select-none cursor-pointer"
-                    >
-                      <Sparkles className="size-4 text-violet-200 animate-pulse" />
-                      <span>Try the Interactive Demo</span>
-                      <ArrowRight className="size-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1" />
-                    </button>
-                    <a
-                      href={appUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-300/10 px-6 text-sm font-extrabold text-cyan-50 shadow-[0_0_26px_rgba(77,222,208,0.16)] transition hover:border-cyan-200/60 hover:bg-cyan-300/16 hover:shadow-[0_0_34px_rgba(77,222,208,0.26)] select-none"
-                    >
-                      Open Fabra
-                      <ExternalLink className="size-4" />
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </main>
   );
 }
 
@@ -1194,7 +857,7 @@ function LoadingExperience() {
     <div className="w-full max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center relative select-none">
       <div className="absolute inset-0 -z-10 rounded-[3rem] bg-violet-500/[0.03] blur-3xl pointer-events-none" />
       
-      {/* Círculo de Carga Inteligente de la Guía */}
+      {/* Smart guide loading circle */}
       <div className="relative size-44 mb-10 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
@@ -1217,7 +880,7 @@ function LoadingExperience() {
           AI Diagnostic in Progress
         </span>
         
-        {/* Log dinámico de tareas */}
+        {/* Dynamic task log */}
         <div className="h-14 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.p
@@ -1233,7 +896,7 @@ function LoadingExperience() {
           </AnimatePresence>
         </div>
 
-        {/* Barra de progreso de carga */}
+        {/* Loading progress bar */}
         <div className="h-2 w-full max-w-[320px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
           <motion.div
             initial={{ width: "0%" }}
@@ -1266,7 +929,7 @@ function FlowHeader({
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-6">
       <div className="relative flex items-center justify-between w-full px-8 py-4">
-        {/* Línea de progreso de fondo */}
+        {/* Background progress line */}
         <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-10 rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-amber-400"
@@ -1296,7 +959,7 @@ function FlowHeader({
                 isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-40"
               }`}
             >
-              {/* Nodo circular interactivo */}
+              {/* Interactive circular node */}
               <motion.div
                 animate={{
                   scale: isActive ? 1.15 : 1,
@@ -1320,13 +983,13 @@ function FlowHeader({
                   <span className="text-xs font-black">{index + 1}</span>
                 )}
 
-                {/* Resplandor pulsante para nodo activo */}
+                {/* Pulsing glow for the active node */}
                 {isActive && (
                   <span className="absolute inset-0 rounded-full animate-ping bg-violet-400/20 pointer-events-none" />
                 )}
               </motion.div>
 
-              {/* Etiqueta del paso */}
+              {/* Step label */}
               <span className={`text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 ${
                 isActive 
                   ? "text-violet-300 scale-105" 
@@ -1816,7 +1479,7 @@ function CVSection({
 function AnalysisExperience({ onImprove }: { onImprove: () => void }) {
   return (
     <div className="relative w-full">
-      {/* Resplandor ambiental de fondo */}
+      {/* Ambient background glow */}
       <div className="absolute inset-0 -z-10 bg-radial from-violet-600/10 to-transparent blur-3xl pointer-events-none" />
       
       <div className="space-y-10">
@@ -1866,7 +1529,7 @@ function AnalysisCTA({ onImprove }: { onImprove: () => void }) {
 function AnalysisHero() {
   return (
     <div className="w-full rounded-3xl border border-white/10 bg-[#0c0d12]/50 p-6 sm:p-8 backdrop-blur-md relative overflow-hidden shadow-2xl">
-      {/* Resplandor interior decorativo */}
+      {/* Decorative inner glow */}
       <div className="absolute -right-32 -top-32 size-96 bg-radial from-amber-500/[0.07] to-transparent blur-3xl pointer-events-none" />
       <div className="absolute -left-32 -bottom-32 size-96 bg-radial from-violet-500/[0.05] to-transparent blur-3xl pointer-events-none" />
 
@@ -2203,10 +1866,10 @@ function TemplateStudioView({
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       
-      {/* Columna Izquierda: Chatbot Editor */}
+      {/* Left column: chatbot editor */}
       <div className="lg:col-span-5 flex flex-col h-[640px] rounded-3xl border border-white/10 bg-[#0c0d12]/80 backdrop-blur-md shadow-2xl overflow-hidden relative">
         
-        {/* Cabecera del chat */}
+        {/* Chat header */}
         <div className="p-5 border-b border-white/8 bg-white/[0.02] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-3.5 rounded-full bg-violet-50 animate-pulse" />
@@ -2223,7 +1886,7 @@ function TemplateStudioView({
           </button>
         </div>
 
-        {/* Historial de mensajes */}
+        {/* Message history */}
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-4">
           {messages.map((msg, idx) => (
             <div 
@@ -2242,7 +1905,7 @@ function TemplateStudioView({
             </div>
           ))}
 
-          {/* Indicador de escritura */}
+          {/* Typing indicator */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-white/[0.04] border border-white/5 rounded-2xl rounded-bl-none p-4 flex items-center gap-1.5">
@@ -2254,7 +1917,7 @@ function TemplateStudioView({
           )}
         </div>
 
-        {/* Entrada y píldoras rápidas */}
+        {/* Input and quick pills */}
         <div className="p-5 border-t border-white/8 bg-white/[0.01] space-y-4">
           <div className="flex flex-col gap-2.5">
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Suggested Adjustments</p>
@@ -2327,7 +1990,7 @@ function TemplateStudioView({
 
       </div>
 
-      {/* Columna Derecha: Previsualización de CV adaptable */}
+      {/* Right column: responsive CV preview */}
       <div className="lg:col-span-7 flex flex-col items-center w-full">
         <div className="w-full max-w-[680px] mb-4 flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex flex-col gap-1">
@@ -2705,7 +2368,7 @@ function JobMatchFlowHeader({
       </button>
 
       <div className="relative flex items-center justify-between w-full px-8 py-4">
-        {/* Línea de progreso de fondo */}
+        {/* Background progress line */}
         <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-10 rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-violet-600 via-indigo-500 to-cyan-400"
@@ -2731,7 +2394,7 @@ function JobMatchFlowHeader({
                 isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-40"
               }`}
             >
-              {/* Nodo circular interactivo */}
+              {/* Interactive circular node */}
               <motion.div
                 animate={{
                   scale: isActive ? 1.15 : 1,
@@ -2755,13 +2418,13 @@ function JobMatchFlowHeader({
                   <span className="text-xs font-black">{index + 1}</span>
                 )}
 
-                {/* Resplandor pulsante para nodo activo */}
+                {/* Pulsing glow for the active node */}
                 {isActive && (
                   <span className="absolute inset-0 rounded-full animate-ping bg-violet-400/20 pointer-events-none" />
                 )}
               </motion.div>
 
-              {/* Etiqueta */}
+              {/* Label */}
               <span className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
                 isActive
                   ? "text-violet-400"
@@ -2808,7 +2471,7 @@ function JobMatchLoadingExperience({ onComplete }: { onComplete: () => void }) {
     <div className="w-full max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center relative select-none">
       <div className="absolute inset-0 -z-10 rounded-[3rem] bg-violet-500/[0.03] blur-3xl pointer-events-none" />
 
-      {/* Círculo de Carga Inteligente */}
+      {/* Smart loading circle */}
       <div className="relative size-44 mb-10 flex items-center justify-center">
         <motion.div
           animate={{ rotate: 360 }}
@@ -2831,7 +2494,7 @@ function JobMatchLoadingExperience({ onComplete }: { onComplete: () => void }) {
           Job Alignment Match in Progress
         </span>
 
-        {/* Log dinámico de tareas */}
+        {/* Dynamic task log */}
         <div className="h-14 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.p
@@ -2847,7 +2510,7 @@ function JobMatchLoadingExperience({ onComplete }: { onComplete: () => void }) {
           </AnimatePresence>
         </div>
 
-        {/* Barra de progreso de carga */}
+        {/* Loading progress bar */}
         <div className="h-2 w-full max-w-[320px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
           <motion.div
             initial={{ width: "0%" }}
@@ -2891,7 +2554,7 @@ function ScoreRing({
   return (
     <div className="relative flex items-center justify-center select-none" style={{ width: size, height: size }}>
       <svg className="size-full -rotate-90">
-        {/* Trazo de fondo */}
+        {/* Background stroke */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -2900,7 +2563,7 @@ function ScoreRing({
           stroke="rgba(255, 255, 255, 0.05)"
           strokeWidth={strokeWidth}
         />
-        {/* Trazo de progreso con gradiente */}
+        {/* Gradient progress stroke */}
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -2929,7 +2592,7 @@ function ScoreRing({
           </linearGradient>
         </defs>
       </svg>
-      {/* Texto del score central */}
+      {/* Central score text */}
       <div className="absolute flex flex-col items-center justify-center">
         <span className="text-3xl font-black text-white leading-none">{score}</span>
         <span className={`text-[9px] font-bold tracking-wider mt-1 uppercase ${
@@ -3723,7 +3386,7 @@ function JobMatchTrackingView({
         </button>
       </div>
 
-      {/* Kanban Board - takes full width */}
+      {/* Kanban board - takes full width */}
       <div className="w-full rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -3745,7 +3408,7 @@ function JobMatchTrackingView({
           </a>
         </div>
 
-        {/* Kanban Columns */}
+        {/* Kanban columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full flex-1">
           {columns.map((col) => {
             const colOffers = offers.filter((off) => off.status === col.id);
