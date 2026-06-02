@@ -416,7 +416,10 @@ export function LandingExperience() {
         }
       }
 
-      // 2. Pairwise rectangle collisions (Elastic Collisions)
+      // 2. Pairwise rectangle collisions
+      const collisionGap = 10;
+      const bounceDamping = 0.92;
+
       for (let i = 0; i < numBubbles; i++) {
         for (let j = i + 1; j < numBubbles; j++) {
           const b1 = bubbles[i];
@@ -430,55 +433,59 @@ export function LandingExperience() {
           const cx2 = b2.x + b2.width / 2;
           const cy2 = b2.y + b2.height / 2;
 
-          const hw1 = b1.width / 2;
-          const hh1 = b1.height / 2;
-          const hw2 = b2.width / 2;
-          const hh2 = b2.height / 2;
+          const hw1 = b1.width / 2 + collisionGap;
+          const hh1 = b1.height / 2 + collisionGap;
+          const hw2 = b2.width / 2 + collisionGap;
+          const hh2 = b2.height / 2 + collisionGap;
 
           const overlapX = (hw1 + hw2) - Math.abs(cx1 - cx2);
           const overlapY = (hh1 + hh2) - Math.abs(cy1 - cy2);
 
           if (overlapX > 0 && overlapY > 0) {
-            // Bounce along the direction of least overlap
             if (overlapX < overlapY) {
               const dirX = Math.sign(cx2 - cx1) || 1;
+              const b1Speed = Math.max(Math.abs(b1.vx), b1.targetSpeed * 0.75);
+              const b2Speed = Math.max(Math.abs(b2.vx), b2.targetSpeed * 0.75);
 
               if (isHovered1 && !isHovered2) {
                 b2.x += overlapX * dirX;
-                b2.vx = Math.abs(b2.vx) * dirX;
+                b2.vx = b2Speed * dirX * bounceDamping;
               } else if (!isHovered1 && isHovered2) {
                 b1.x -= overlapX * dirX;
-                b1.vx = -Math.abs(b1.vx) * dirX;
+                b1.vx = -b1Speed * dirX * bounceDamping;
               } else if (!isHovered1 && !isHovered2) {
-                // Shift both
                 b1.x -= overlapX * 0.5 * dirX;
                 b2.x += overlapX * 0.5 * dirX;
-                // Swap velocities
-                const temp = b1.vx;
-                b1.vx = b2.vx;
-                b2.vx = temp;
+                b1.vx = -b1Speed * dirX * bounceDamping;
+                b2.vx = b2Speed * dirX * bounceDamping;
               }
             } else {
               const dirY = Math.sign(cy2 - cy1) || 1;
+              const b1Speed = Math.max(Math.abs(b1.vy), b1.targetSpeed * 0.75);
+              const b2Speed = Math.max(Math.abs(b2.vy), b2.targetSpeed * 0.75);
 
               if (isHovered1 && !isHovered2) {
                 b2.y += overlapY * dirY;
-                b2.vy = Math.abs(b2.vy) * dirY;
+                b2.vy = b2Speed * dirY * bounceDamping;
               } else if (!isHovered1 && isHovered2) {
                 b1.y -= overlapY * dirY;
-                b1.vy = -Math.abs(b1.vy) * dirY;
+                b1.vy = -b1Speed * dirY * bounceDamping;
               } else if (!isHovered1 && !isHovered2) {
-                // Shift both
                 b1.y -= overlapY * 0.5 * dirY;
                 b2.y += overlapY * 0.5 * dirY;
-                // Swap velocities
-                const temp = b1.vy;
-                b1.vy = b2.vy;
-                b2.vy = temp;
+                b1.vy = -b1Speed * dirY * bounceDamping;
+                b2.vy = b2Speed * dirY * bounceDamping;
               }
             }
           }
         }
+      }
+
+      for (let i = 0; i < numBubbles; i++) {
+        const bubble = bubbles[i];
+        const pad = 12;
+        bubble.x = Math.min(Math.max(bubble.x, pad), containerW - pad - bubble.width);
+        bubble.y = Math.min(Math.max(bubble.y, pad), containerH - pad - bubble.height);
       }
 
       // 3. Mutate DOM styles directly for high performance
@@ -723,9 +730,12 @@ export function LandingExperience() {
 
               <a
                 href={appUrl}
-                className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-cyan-300/35 bg-cyan-300/10 px-8 text-base font-extrabold text-cyan-50 shadow-[0_0_26px_rgba(77,222,208,0.16)] transition hover:border-cyan-200/60 hover:bg-cyan-300/16 hover:shadow-[0_0_34px_rgba(77,222,208,0.26)] select-none"
               >
-                Start crafting with Fabra
+                Open Fabra
+                <ExternalLink className="size-4" />
               </a>
             </div>
            </motion.div>
