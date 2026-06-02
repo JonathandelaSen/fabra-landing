@@ -100,3 +100,48 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Custom continuous animations for the interactive demo button */
+@keyframes button-pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(155, 124, 255, 0.12);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 4px 20px rgba(155, 124, 255, 0.22);
+  }
+}
+
+@keyframes button-gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-pulse-scale-glow {
+  background-size: 200% auto;
+  animation: 
+    button-pulse-scale 3s ease-in-out infinite,
+    button-gradient-move 6s ease infinite;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.animate-pulse-scale-glow:hover {
+  /* Pause the constant pulsing when the user hovers, letting the hover styles take over cleanly */
+  animation-play-state: paused;
+  transform: scale(1.05) translateY(-3px);
+  box-shadow: 0 8px 24px rgba(155, 124, 255, 0.32);
+}
+
+.animate-pulse-scale-glow:active {
+  transform: scale(0.97) translateY(0);
+  box-shadow: 0 2px 8px rgba(155, 124, 255, 0.2);
+}
+

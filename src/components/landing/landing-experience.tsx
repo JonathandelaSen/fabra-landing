@@ -265,18 +265,21 @@ export function LandingExperience() {
             <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68">
               Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
+              {/* Interactive Demo Glowing Button */}
               <button
                 type="button"
                 onClick={scrollToFlow}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#090a10] transition hover:scale-[1.02]"
+                className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
               >
-                Explore the flow
-                <ArrowRight className="size-4" />
+                <Sparkles className="size-5 text-violet-200 animate-pulse" />
+                <span>Try the Interactive Demo</span>
+                <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
               </button>
+
               <a
                 href={appUrl}
-                className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 px-6 text-sm font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8"
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
               >
                 Start crafting with Fabra
               </a>
