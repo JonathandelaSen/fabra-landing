@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Script id="history-restore-reload" strategy="beforeInteractive">
+          {`
+            (function () {
+              var reloadKey = "fabra-history-restore-reloaded";
+              function reloadOnce() {
+                try {
+                  if (sessionStorage.getItem(reloadKey) === "1") {
+                    sessionStorage.removeItem(reloadKey);
+                    return;
+                  }
+                  sessionStorage.setItem(reloadKey, "1");
+                } catch (_) {}
+                window.location.reload();
+              }
+
+              window.addEventListener("pageshow", function (event) {
+                if (event.persisted) reloadOnce();
+              });
+
+              var navigation = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+              if (navigation && navigation.type === "back_forward") {
+                reloadOnce();
+              }
+            })();
+          `}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }

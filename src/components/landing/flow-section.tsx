@@ -58,11 +58,11 @@ export function FlowSection({
             <FlowHeader current={step} onTabClick={onTabClick} />
           )}
           <GuideBanner step={step} />
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             {step === "analysis" ? (
               <motion.div
                 key="analysis"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -73,7 +73,7 @@ export function FlowSection({
             ) : step === "templates" ? (
               <motion.div
                 key="templates"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -88,7 +88,7 @@ export function FlowSection({
             ) : step === "studio" ? (
               <motion.div
                 key="studio"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -115,7 +115,7 @@ export function FlowSection({
             ) : step === "completion" ? (
               <motion.div
                 key="completion"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -133,7 +133,7 @@ export function FlowSection({
             ) : step === "job-loading" ? (
               <motion.div
                 key="job-loading"
-                initial={{ opacity: 0, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.42 }}
@@ -144,7 +144,7 @@ export function FlowSection({
             ) : step === "job-analysis" ? (
               <motion.div
                 key="job-analysis"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -158,7 +158,7 @@ export function FlowSection({
             ) : step === "job-chat" ? (
               <motion.div
                 key="job-chat"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -172,7 +172,7 @@ export function FlowSection({
             ) : step === "job-tracking" ? (
               <motion.div
                 key="job-tracking"
-                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -186,7 +186,7 @@ export function FlowSection({
             ) : step === "loading" ? (
               <motion.div
                 key="loading"
-                initial={{ opacity: 0, scale: 0.98 }}
+                initial={false}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.42 }}
@@ -197,7 +197,7 @@ export function FlowSection({
             ) : (
               <motion.div
                 key="upload"
-                initial={{ opacity: 0, y: 28 }}
+                initial={false}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -18, scale: 0.98 }}
                 transition={{ duration: 0.42, ease: "easeOut" }}
@@ -213,4 +213,3 @@ export function FlowSection({
 
   );
 }
-

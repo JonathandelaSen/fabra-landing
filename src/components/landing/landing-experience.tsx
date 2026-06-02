@@ -13,6 +13,7 @@ import {
 
 export function LandingExperience() {
   const [step, setStep] = useState<FlowStep>("idle");
+  const [restoreVersion, setRestoreVersion] = useState(0);
   const [selectedFeature, setSelectedFeature] = useState<AppFeature | null>(null);
   const flowRef = useRef<HTMLElement | null>(null);
   const isScrollingRef = useRef(false);
@@ -24,6 +25,7 @@ export function LandingExperience() {
   const containerWidthRef = useRef<number>(0);
   const containerHeightRef = useRef<number>(0);
   const requestRef = useRef<number | null>(null);
+  const analyzeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Only run physics simulation on screen widths >= 1024 (desktop)
@@ -284,6 +286,34 @@ export function LandingExperience() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const recoverFromHistoryRestore = () => {
+      isScrollingRef.current = false;
+      hoveredRef.current = null;
+      setSelectedFeature(null);
+
+      window.requestAnimationFrame(() => {
+        window.dispatchEvent(new Event("resize"));
+        setRestoreVersion((version) => version + 1);
+      });
+    };
+
+    const handlePageShow = () => {
+      recoverFromHistoryRestore();
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("popstate", recoverFromHistoryRestore);
+    window.addEventListener("focus", recoverFromHistoryRestore);
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("popstate", recoverFromHistoryRestore);
+      window.removeEventListener("focus", recoverFromHistoryRestore);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!selectedFeature) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") setSelectedFeature(null);
@@ -291,6 +321,14 @@ export function LandingExperience() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedFeature]);
+
+  useEffect(() => {
+    return () => {
+      if (analyzeTimerRef.current) {
+        window.clearTimeout(analyzeTimerRef.current);
+      }
+    };
+  }, []);
 
   // Template Customizer Sandbox States
   const [selectedTemplate, setSelectedTemplate] = useState<"linea" | "marco" | "pulso" | "filo">("pulso");
@@ -327,8 +365,14 @@ export function LandingExperience() {
   };
 
   const analyze = () => {
+    if (analyzeTimerRef.current) {
+      window.clearTimeout(analyzeTimerRef.current);
+    }
     setStep("loading");
-    window.setTimeout(() => setStep("analysis"), 3800);
+    analyzeTimerRef.current = window.setTimeout(() => {
+      setStep("analysis");
+      analyzeTimerRef.current = null;
+    }, 3800);
   };
 
   const resetStudioStates = () => {
@@ -348,8 +392,14 @@ export function LandingExperience() {
       }
     } else if (tabKey === "analysis") {
       if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
+        if (analyzeTimerRef.current) {
+          window.clearTimeout(analyzeTimerRef.current);
+        }
         setStep("loading");
-        window.setTimeout(() => setStep("analysis"), 3800);
+        analyzeTimerRef.current = window.setTimeout(() => {
+          setStep("analysis");
+          analyzeTimerRef.current = null;
+        }, 3800);
       }
     } else if (tabKey === "studio") {
       if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
@@ -466,6 +516,7 @@ export function LandingExperience() {
       />
 
       <FlowSection
+        key={restoreVersion}
         flowRef={flowRef}
         step={step}
         selectedTemplate={selectedTemplate}
@@ -495,4 +546,3 @@ export function LandingExperience() {
     </main>
   );
 }
-

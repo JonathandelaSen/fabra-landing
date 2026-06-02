@@ -93,7 +93,7 @@ export function GuideBanner({ step }: { step: FlowStep }) {
   return (
     <motion.div
       key={step}
-      initial={{ opacity: 0, scale: 0.98, y: -10 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98, y: 10 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
@@ -306,7 +306,7 @@ export function UploadExperience({
     return (
       <div className="w-full max-w-[580px] mx-auto py-4">
         <motion.div
-          initial={{ opacity: 0, scale: 0.98, y: 15 }}
+          initial={false}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.55, ease: "easeOut" }}
           className="relative flex flex-col items-center w-full"
@@ -329,7 +329,7 @@ export function UploadExperience({
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
             className="mt-8 flex justify-center w-full"
@@ -351,7 +351,7 @@ export function UploadExperience({
   return (
     <div className="w-full max-w-xl mx-auto py-8">
       <motion.div
-        initial={{ opacity: 0, y: 15 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         className="relative flex flex-col items-center w-full"
       >
