@@ -3,19 +3,38 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   ArrowRight,
   Briefcase,
   Check,
+  ClipboardList,
   ExternalLink,
   FileText,
+  Globe,
+  HelpCircle,
+  KanbanSquare,
   Loader2,
+  MessageSquare,
   Sparkles,
   Star,
+  Target,
   Trophy,
 } from "lucide-react";
 import { appUrl, cvAnalysis, job, profile } from "@/lib/demo-data";
 
-type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis" | "templates" | "studio" | "completion";
+type FlowStep =
+  | "idle"
+  | "uploading"
+  | "ready"
+  | "loading"
+  | "analysis"
+  | "templates"
+  | "studio"
+  | "completion"
+  | "job-loading"
+  | "job-analysis"
+  | "job-chat"
+  | "job-tracking";
 
 const stepper = [
   { key: "upload", label: "Upload CV" },
@@ -78,7 +97,17 @@ export function LandingExperience() {
   }, [step]);
 
   useEffect(() => {
-    if (step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
+    const stepsToScroll = [
+      "analysis",
+      "templates",
+      "studio",
+      "completion",
+      "job-loading",
+      "job-analysis",
+      "job-chat",
+      "job-tracking",
+    ];
+    if (stepsToScroll.includes(step)) {
       flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [step]);
@@ -258,7 +287,15 @@ export function LandingExperience() {
 
       <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
-          <FlowHeader current={step} onTabClick={handleTabClick} />
+          {["job-loading", "job-analysis", "job-chat", "job-tracking"].includes(step) ? (
+            <JobMatchFlowHeader
+              current={step}
+              onStepChange={(newStep) => setStep(newStep)}
+              onBackToCV={() => setStep("completion")}
+            />
+          ) : (
+            <FlowHeader current={step} onTabClick={handleTabClick} />
+          )}
           <GuideBanner step={step} />
           <AnimatePresence mode="wait">
             {step === "analysis" ? (
@@ -297,6 +334,7 @@ export function LandingExperience() {
                 className="mt-8"
               >
                 <TemplateStudioView 
+                  key={selectedTemplate}
                   template={selectedTemplate}
                   onChangeTemplate={() => {
                     resetStudioStates();
@@ -328,6 +366,60 @@ export function LandingExperience() {
                   skillsPosition={skillsPosition}
                   isSummaryCondensed={isSummaryCondensed}
                   isSuggestionsApplied={isSuggestionsApplied}
+                  onStartJobMatch={() => setStep("job-loading")}
+                />
+              </motion.div>
+            ) : step === "job-loading" ? (
+              <motion.div
+                key="job-loading"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.42 }}
+                className="mt-10"
+              >
+                <JobMatchLoadingExperience onComplete={() => setStep("job-analysis")} />
+              </motion.div>
+            ) : step === "job-analysis" ? (
+              <motion.div
+                key="job-analysis"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <JobMatchAnalysisView 
+                  onNext={() => setStep("job-chat")} 
+                  onBack={() => setStep("completion")} 
+                />
+              </motion.div>
+            ) : step === "job-chat" ? (
+              <motion.div
+                key="job-chat"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <JobMatchChatView 
+                  onNext={() => setStep("job-tracking")} 
+                  onBack={() => setStep("job-analysis")} 
+                />
+              </motion.div>
+            ) : step === "job-tracking" ? (
+              <motion.div
+                key="job-tracking"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <JobMatchTrackingView 
+                  onBack={() => setStep("job-chat")} 
+                  onResetAll={() => setStep("ready")} 
                 />
               </motion.div>
             ) : step === "loading" ? (
@@ -411,6 +503,30 @@ function GuideBanner({ step }: { step: FlowStep }) {
           title: "Your optimized CV is ready!",
           glowColor: "16, 185, 129", // emerald
         };
+      case "job-loading":
+        return {
+          badge: "09 · COMPARING ROLES",
+          title: "Matching profile to Staff Software Engineer...",
+          glowColor: "124, 58, 237", // violet
+        };
+      case "job-analysis":
+        return {
+          badge: "10 · MATCH DIAGNOSIS",
+          title: "Alignment Score: 84/100 · Strong Match",
+          glowColor: "99, 102, 241", // indigo
+        };
+      case "job-chat":
+        return {
+          badge: "11 · AI COACHING",
+          title: "Consulting Fabra Copilot on positioning",
+          glowColor: "168, 85, 247", // purple
+        };
+      case "job-tracking":
+        return {
+          badge: "12 · OPPORTUNITY TRACKING",
+          title: "Position added to pipeline & moving toward Interview Prep",
+          glowColor: "34, 211, 238", // cyan
+        };
       default:
         return null;
     }
@@ -447,20 +563,21 @@ function GuideBanner({ step }: { step: FlowStep }) {
   );
 }
 
+const CORE_LOADING_LOGS = [
+  "Reading PDF document structure...",
+  "Extracting metadata & career checkpoints...",
+  "Benchmarking technical skills against industry standards...",
+  "Scanning keyword alignment and coverage...",
+  "Consulting models for strategic analysis...",
+  "Assembling recommendations & finishing diagnostic report...",
+];
+
 function LoadingExperience() {
   const [logIndex, setLogIndex] = useState(0);
-  const logs = [
-    "Reading PDF document structure...",
-    "Extracting metadata & career checkpoints...",
-    "Benchmarking technical skills against industry standards...",
-    "Scanning keyword alignment and coverage...",
-    "Consulting models for strategic analysis...",
-    "Assembling recommendations & finishing diagnostic report...",
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setLogIndex((prev) => (prev < logs.length - 1 ? prev + 1 : prev));
+      setLogIndex((prev) => (prev < CORE_LOADING_LOGS.length - 1 ? prev + 1 : prev));
     }, 600);
     return () => clearInterval(interval);
   }, []);
@@ -503,7 +620,7 @@ function LoadingExperience() {
               transition={{ duration: 0.25 }}
               className="text-base sm:text-lg lg:text-xl font-bold tracking-wide text-white/90"
             >
-              {logs[logIndex]}
+              {CORE_LOADING_LOGS[logIndex]}
             </motion.p>
           </AnimatePresence>
         </div>
@@ -1140,66 +1257,47 @@ function AnalysisCTA({ onImprove }: { onImprove: () => void }) {
 
 function AnalysisHero() {
   return (
-    <div className="rounded-3xl border border-amber-500/18 bg-gradient-to-br from-amber-500/[0.12] via-amber-600/[0.03] to-transparent p-8 sm:p-10 shadow-[0_24px_80px_rgba(245,158,11,0.08)] relative overflow-hidden">
+    <div className="w-full rounded-3xl border border-white/10 bg-[#0c0d12]/50 p-6 sm:p-8 backdrop-blur-md relative overflow-hidden shadow-2xl">
       {/* Resplandor interior decorativo */}
-      <div className="absolute -right-20 -top-20 -z-10 size-96 rounded-full bg-radial from-amber-500/12 to-transparent blur-3xl pointer-events-none" />
-      
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-amber-500/18 pb-8 mb-8">
-        <div>
-          <h3 className="text-3xl font-black tracking-tight text-white sm:text-4xl">Jonathan de la Sen CV</h3>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-amber-400/40 bg-amber-400/12 px-3.5 py-1 text-xs font-bold text-amber-300">
-              Improvable
-            </span>
-            <span className="rounded-full border border-violet-300/30 bg-violet-300/12 px-3.5 py-1 text-xs font-bold text-violet-200">
-              General analysis
-            </span>
-          </div>
-        </div>
-        
-        {/* Marcador de puntuación circular premium y animado */}
-        <div className="relative flex items-center justify-center size-28 sm:size-32 rounded-full border border-amber-500/30 bg-[#090a10]/95 shadow-[0_0_50px_rgba(245,158,11,0.22)] shrink-0 group">
-          {/* Anillo de brillo exterior pulsante */}
-          <span className="absolute inset-0 rounded-full border border-amber-500/10 animate-ping opacity-75 pointer-events-none" />
-          {/* Anillo giratorio de guiones */}
-          <span className="absolute inset-2 rounded-full border border-dashed border-amber-500/20 animate-spin animate-duration-[20000ms]" />
-          {/* Segundo anillo concéntrico estático */}
-          <span className="absolute inset-4 rounded-full border border-dotted border-amber-500/10" />
-          <div className="flex items-baseline select-none z-10">
-            <span className="text-5xl sm:text-6xl font-black tracking-tighter bg-gradient-to-b from-white via-amber-200 to-amber-400 bg-clip-text text-transparent filter drop-shadow-[0_2px_12px_rgba(245,158,11,0.35)]">
-              {cvAnalysis.score}
+      <div className="absolute -right-32 -top-32 size-96 bg-radial from-amber-500/[0.07] to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute -left-32 -bottom-32 size-96 bg-radial from-violet-500/[0.05] to-transparent blur-3xl pointer-events-none" />
+
+      <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 relative z-10">
+        {/* Score ring column */}
+        <div className="flex flex-col items-center shrink-0">
+          <ScoreRing score={cvAnalysis.score} variant="amber" label="Score" size={120} strokeWidth={8} />
+          <div className="mt-4 flex flex-col items-center">
+            <span className="rounded-full bg-amber-500/12 border border-amber-500/20 px-3 py-1 text-xs font-black text-amber-300">
+              IMPROVABLE
             </span>
           </div>
         </div>
-      </div>
-      
-      <div>
-        <p className="max-w-5xl text-base sm:text-lg leading-8 text-white/62">
-          This CV presents exceptional content, highlighting solid experience and deep technical knowledge in software engineering.
-          It is particularly strong in impact quantification, system performance and AI-assisted development. The next step is to
-          clarify chronology, sharpen the summary and make the strongest signals easier for ATS and recruiters to scan.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-2.5">
-          <MetaPill>gemini-2.5-flash</MetaPill>
-          <MetaPill>June 2, 2026 · 00:38</MetaPill>
-          <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
+
+        {/* Details column */}
+        <div className="flex-1 text-center lg:text-left space-y-4">
+          <div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center lg:justify-start">
+              <h3 className="text-2xl sm:text-3xl font-black text-white">Jonathan de la Sen CV</h3>
+
+            </div>
+          </div>
+
+          <p className="text-sm sm:text-base text-white/70 leading-relaxed max-w-4xl">
+            This CV presents exceptional content, highlighting solid experience and deep technical knowledge in software engineering. It is particularly strong in impact quantification, system performance, and AI-assisted development. The next step is to clarify chronology, sharpen the summary and make the strongest signals easier for ATS and recruiters to scan.
+          </p>
+
+          {/* Meta pills */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs text-white/40 pt-2">
+            <span className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-medium">
+              Model: gemini-2.5-flash
+            </span>
+            <span className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-medium">
+              Analyzed: June 2, 2026 · 00:38
+            </span>
+          </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function MetaPill({ children, accent = false }: { children: React.ReactNode; accent?: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold ${
-        accent
-          ? "border-sky-400/30 bg-sky-500/15 text-sky-200"
-          : "border-white/8 bg-white/[0.045] text-white/38"
-      }`}
-    >
-      {children}
-    </span>
   );
 }
 
@@ -1409,19 +1507,15 @@ function TemplateStudioView({
   isSuggestionsApplied: boolean;
   setIsSuggestionsApplied: (b: boolean) => void;
 }) {
-  const [messages, setMessages] = useState<Array<{ sender: "ai" | "user"; text: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ sender: "ai" | "user"; text: string }>>(() => [
+    {
+      sender: "ai",
+      text: `Welcome to the Template Studio! I've loaded your data into the "${template.toUpperCase()}" template. How would you like to refine your CV? You can click one of the suggested actions below.`
+    }
+  ]);
   const [isTyping, setIsTyping] = useState(false);
   
   const chatEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setMessages([
-      {
-        sender: "ai",
-        text: `Welcome to the Template Studio! I've loaded your data into the "${template.toUpperCase()}" template. How would you like to refine your CV? You can click one of the suggested actions below.`
-      }
-    ]);
-  }, [template]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -1666,22 +1760,32 @@ function TemplateStudioView({
 
 /* ─── Confetti Particle ─── */
 function ConfettiParticle({ delay, color, left }: { delay: number; color: string; left: string }) {
+  const [params] = useState(() => ({
+    xOffset: (Math.random() - 0.5) * 200,
+    rotateAmt: 360 + Math.random() * 360,
+    duration: 3 + Math.random() * 2,
+    repeatDelay: Math.random() * 3,
+    width: 6 + Math.random() * 8,
+    height: 6 + Math.random() * 8,
+    initialRotation: Math.random() * 45,
+  }));
+
   return (
     <motion.div
       initial={{ y: -20, x: 0, opacity: 1, rotate: 0, scale: 1 }}
       animate={{
         y: [0, 600],
-        x: [0, (Math.random() - 0.5) * 200],
-        rotate: [0, 360 + Math.random() * 360],
+        x: [0, params.xOffset],
+        rotate: [0, params.rotateAmt],
         opacity: [1, 1, 0],
         scale: [1, 0.6],
       }}
       transition={{
-        duration: 3 + Math.random() * 2,
+        duration: params.duration,
         delay,
         ease: "easeOut",
         repeat: Infinity,
-        repeatDelay: Math.random() * 3,
+        repeatDelay: params.repeatDelay,
       }}
       className="absolute top-0 pointer-events-none"
       style={{ left }}
@@ -1689,10 +1793,10 @@ function ConfettiParticle({ delay, color, left }: { delay: number; color: string
       <div
         className="rounded-sm"
         style={{
-          width: `${6 + Math.random() * 8}px`,
-          height: `${6 + Math.random() * 8}px`,
+          width: `${params.width}px`,
+          height: `${params.height}px`,
           background: color,
-          transform: `rotate(${Math.random() * 45}deg)`,
+          transform: `rotate(${params.initialRotation}deg)`,
         }}
       />
     </motion.div>
@@ -1706,24 +1810,28 @@ function CompletionExperience({
   skillsPosition,
   isSummaryCondensed,
   isSuggestionsApplied,
+  onStartJobMatch,
 }: {
   template: "linea" | "marco" | "pulso" | "filo";
   accentColor: "default" | "cool";
   skillsPosition: "bottom" | "top";
   isSummaryCondensed: boolean;
   isSuggestionsApplied: boolean;
+  onStartJobMatch: () => void;
 }) {
   const confettiColors = [
     "#a855f7", "#6366f1", "#ec4899", "#f59e0b", "#10b981",
     "#06b6d4", "#f43f5e", "#8b5cf6", "#22d3ee", "#fbbf24",
   ];
 
-  const confettiParticles = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    delay: Math.random() * 2,
-    color: confettiColors[i % confettiColors.length],
-    left: `${Math.random() * 100}%`,
-  }));
+  const [confettiParticles] = useState(() =>
+    Array.from({ length: 40 }, (_, i) => ({
+      id: i,
+      delay: Math.random() * 2,
+      color: confettiColors[i % confettiColors.length],
+      left: `${Math.random() * 100}%`,
+    }))
+  );
 
   return (
     <div className="relative w-full py-8 select-none">
@@ -1879,35 +1987,49 @@ function CompletionExperience({
                 Compare against a job offer
               </h4>
               <p className="text-sm text-white/55 leading-relaxed max-w-md mb-6">
-                See how your optimized profile matches a real engineering role. AI will score your alignment, flag gaps, and suggest how to position your experience.
+                Compare your tailored profile against this live role. Get alignment scoring, gaps, and positioning strategy instantly.
               </p>
 
               {/* Fake job card */}
-              <div className="w-full max-w-sm rounded-2xl border border-white/8 bg-white/[0.03] p-5 mb-6 text-left">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-bold text-white">{job.title}</p>
-                    <p className="text-xs text-white/50 mt-0.5">{job.company} · {job.location}</p>
+              <div className="w-full max-w-md rounded-2xl border border-violet-500/30 bg-gradient-to-br from-[#0c0d12]/90 to-[#090a10]/95 p-6 mb-7 text-left shadow-[0_20px_50px_rgba(124,58,237,0.15)] relative overflow-hidden hover:border-violet-500/50 transition duration-300 group">
+                {/* Accent glow line inside */}
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500" />
+                
+                <div className="flex gap-4 items-start mb-4">
+                  {/* Mock Company Logo */}
+                  <div className="size-12 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center font-black text-white text-lg shrink-0 shadow-lg shadow-violet-500/25">
+                    N
                   </div>
-                  <span className="rounded-lg bg-violet-500/12 border border-violet-500/20 px-2 py-1 text-[10px] font-black text-violet-300">
-                    NEW
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-base sm:text-lg font-black text-white leading-tight truncate">{job.title}</p>
+                      <span className="shrink-0 rounded bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9px] font-black text-emerald-400 uppercase tracking-wider">
+                        Active
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-white/60 mt-1">{job.company} · {job.location}</p>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {job.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1 text-[10px] font-semibold text-white/60"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+
+                <div className="border-t border-white/5 pt-4">
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-wider mb-2">Role tags & technology</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-lg border border-violet-500/10 bg-violet-500/[0.04] px-2.5 py-1 text-xs font-semibold text-violet-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* CTA button */}
               <motion.button
                 type="button"
+                onClick={onStartJobMatch}
                 animate={{
                   boxShadow: [
                     "0 20px 50px rgba(124,58,237,0.25)",
@@ -1934,6 +2056,887 @@ function CompletionExperience({
             </div>
           </div>
         </motion.div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Job Match Flow Components ─── */
+
+function JobMatchFlowHeader({
+  current,
+  onStepChange,
+  onBackToCV,
+}: {
+  current: FlowStep;
+  onStepChange: (step: FlowStep) => void;
+  onBackToCV: () => void;
+}) {
+  const steps = [
+    { key: "job-analysis", label: "Job Analysis" },
+    { key: "job-chat", label: "AI Chat" },
+    { key: "job-tracking", label: "Job Tracking" },
+  ] as const;
+
+  const activeIndex =
+    current === "job-loading" || current === "job-analysis" ? 0 :
+    current === "job-chat" ? 1 :
+    current === "job-tracking" ? 2 :
+    0;
+
+  return (
+    <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-6">
+      {/* Back button */}
+      <button
+        onClick={onBackToCV}
+        className="self-start mb-4 flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white transition cursor-pointer"
+      >
+        <ArrowLeft className="size-3.5" />
+        Back to CV Ready
+      </button>
+
+      <div className="relative flex items-center justify-between w-full px-8 py-4">
+        {/* Línea de progreso de fondo */}
+        <div className="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-0.5 bg-white/10 -z-10 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-violet-600 via-indigo-500 to-cyan-400"
+            initial={false}
+            animate={{ width: activeIndex === 0 ? "0%" : activeIndex === 1 ? "50%" : "100%" }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          />
+        </div>
+
+        {steps.map((item, index) => {
+          const isActive = index === activeIndex;
+          const isCompleted = index < activeIndex;
+
+          const isClickable = current !== "job-loading";
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              disabled={!isClickable}
+              onClick={() => onStepChange(item.key as FlowStep)}
+              className={`relative flex flex-col items-center gap-2 group transition-all duration-300 ${
+                isClickable ? "cursor-pointer" : "cursor-not-allowed opacity-40"
+              }`}
+            >
+              {/* Nodo circular interactivo */}
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.15 : 1,
+                  boxShadow: isActive
+                    ? "0 0 20px rgba(124, 58, 237, 0.4)"
+                    : isCompleted
+                    ? "0 0 10px rgba(99, 102, 241, 0.2)"
+                    : "0 0 0px rgba(0,0,0,0)"
+                }}
+                className={`relative flex size-9 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                  isActive
+                    ? "bg-violet-600 border-violet-400 text-white"
+                    : isCompleted
+                    ? "bg-indigo-600 border-indigo-400 text-white"
+                    : "bg-[#090a10] border-white/15 text-white/40 group-hover:border-white/30 group-hover:text-white/60"
+                }`}
+              >
+                {isCompleted ? (
+                  <Check className="size-4 stroke-[3]" />
+                ) : (
+                  <span className="text-xs font-black">{index + 1}</span>
+                )}
+
+                {/* Resplandor pulsante para nodo activo */}
+                {isActive && (
+                  <span className="absolute inset-0 rounded-full animate-ping bg-violet-400/20 pointer-events-none" />
+                )}
+              </motion.div>
+
+              {/* Etiqueta */}
+              <span className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 ${
+                isActive
+                  ? "text-violet-400"
+                  : isCompleted
+                  ? "text-indigo-400/70"
+                  : "text-white/30 group-hover:text-white/50"
+              }`}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const JOB_MATCH_LOGS = [
+  "Analyzing job offer requirements...",
+  "Extracting keywords and skills from job description...",
+  "Correlating profile strengths with job specs...",
+  "Computing role alignment score...",
+  "Generating strategic gaps and positioning recommendations...",
+];
+
+function JobMatchLoadingExperience({ onComplete }: { onComplete: () => void }) {
+  const [logIndex, setLogIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLogIndex((prev) => (prev < JOB_MATCH_LOGS.length - 1 ? prev + 1 : prev));
+    }, 600);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onComplete();
+    }, 3200);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <div className="w-full max-w-2xl mx-auto py-16 flex flex-col items-center justify-center text-center relative select-none">
+      <div className="absolute inset-0 -z-10 rounded-[3rem] bg-violet-500/[0.03] blur-3xl pointer-events-none" />
+
+      {/* Círculo de Carga Inteligente */}
+      <div className="relative size-44 mb-10 flex items-center justify-center">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 rounded-full border border-dashed border-violet-500/20"
+        />
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-4 rounded-full border border-dashed border-indigo-500/15"
+        />
+        <div className="absolute size-28 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 blur-2xl opacity-35 animate-pulse animate-duration-1000" />
+        <div className="relative size-24 rounded-full bg-[#090a10] border border-white/10 flex items-center justify-center shadow-2xl">
+          <Loader2 className="size-10 text-violet-400 animate-spin" />
+        </div>
+      </div>
+
+      <div className="space-y-5 w-full">
+        <span className="w-fit text-xs font-black uppercase tracking-[0.28em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-indigo-400 to-cyan-400">
+          Job Alignment Match in Progress
+        </span>
+
+        {/* Log dinámico de tareas */}
+        <div className="h-14 flex items-center justify-center overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={logIndex}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
+              className="text-base sm:text-lg lg:text-xl font-bold tracking-wide text-white/90"
+            >
+              {JOB_MATCH_LOGS[logIndex]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
+
+        {/* Barra de progreso de carga */}
+        <div className="h-2 w-full max-w-[320px] mx-auto rounded-full bg-white/10 overflow-hidden relative">
+          <motion.div
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 3.2, ease: "easeInOut" }}
+            className="h-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScoreRing({
+  score = 84,
+  size = 120,
+  strokeWidth = 8,
+  variant = "emerald",
+  label = "Match",
+}: {
+  score?: number;
+  size?: number;
+  strokeWidth?: number;
+  variant?: "emerald" | "amber";
+  label?: string;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const [offset, setOffset] = useState(circumference);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const progress = score / 100;
+      setOffset(circumference - progress * circumference);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [score, circumference]);
+
+  const isAmber = variant === "amber";
+
+  return (
+    <div className="relative flex items-center justify-center select-none" style={{ width: size, height: size }}>
+      <svg className="size-full -rotate-90">
+        {/* Trazo de fondo */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="transparent"
+          stroke="rgba(255, 255, 255, 0.05)"
+          strokeWidth={strokeWidth}
+        />
+        {/* Trazo de progreso con gradiente */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="transparent"
+          stroke={`url(#scoreGradient-${variant})`}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="transition-all duration-1000 ease-out"
+        />
+        <defs>
+          <linearGradient id={`scoreGradient-${variant}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            {isAmber ? (
+              <>
+                <stop offset="0%" stopColor="#fbbf24" />
+                <stop offset="100%" stopColor="#f59e0b" />
+              </>
+            ) : (
+              <>
+                <stop offset="0%" stopColor="#10b981" />
+                <stop offset="100%" stopColor="#06b6d4" />
+              </>
+            )}
+          </linearGradient>
+        </defs>
+      </svg>
+      {/* Texto del score central */}
+      <div className="absolute flex flex-col items-center justify-center">
+        <span className="text-3xl font-black text-white leading-none">{score}</span>
+        <span className={`text-[9px] font-bold tracking-wider mt-1 uppercase ${
+          isAmber ? "text-amber-400/60" : "text-emerald-400/60"
+        }`}>
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function JobMatchAnalysisView({
+  onNext,
+  onBack,
+}: {
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  const [activeHeroTab, setActiveHeroTab] = useState("summary");
+
+  const heroTabs = [
+    { id: "summary", label: "Summary" },
+    { id: "offer", label: "Offer Details" },
+    { id: "questions", label: "Questions" },
+    { id: "copilot", label: "AI Copilot" },
+  ];
+
+  return (
+    <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
+      {/* Back button link */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white transition cursor-pointer"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to CV Ready
+        </button>
+        <button
+          onClick={onNext}
+          className="flex items-center gap-2 rounded-full bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-bold text-white transition cursor-pointer"
+        >
+          Proceed to AI Chat
+          <ArrowRight className="size-3.5" />
+        </button>
+      </div>
+
+      {/* Hero card */}
+      <div className="w-full rounded-3xl border border-white/10 bg-[#0c0d12]/50 p-6 sm:p-8 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className="absolute -right-32 -top-32 size-96 bg-radial from-violet-500/[0.07] to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -left-32 -bottom-32 size-96 bg-radial from-cyan-500/[0.05] to-transparent blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 relative z-10">
+          {/* Score ring column */}
+          <div className="flex flex-col items-center shrink-0">
+            <ScoreRing score={84} size={120} strokeWidth={8} />
+            <div className="mt-4 flex flex-col items-center">
+              <span className="rounded-full bg-emerald-500/12 border border-emerald-500/20 px-3 py-1 text-xs font-black text-emerald-300">
+                EXCELLENT MATCH
+              </span>
+            </div>
+          </div>
+
+          {/* Details column */}
+          <div className="flex-1 text-center lg:text-left space-y-4">
+            <div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center lg:justify-start">
+                <h3 className="text-2xl sm:text-3xl font-black text-white">{job.title}</h3>
+                <span className="w-fit self-center rounded-lg bg-violet-500/12 border border-violet-500/20 px-2 py-0.5 text-[10px] font-black text-violet-300">
+                  84% SCORE
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-white/50 mt-1">
+                {job.company} · {job.location} · Full-time
+              </p>
+            </div>
+
+            <p className="text-sm sm:text-base text-white/70 leading-relaxed max-w-4xl">
+              Your background in high-traffic Node.js platforms, Redis caching, and scaling product systems to 2.2M+ active users is a very strong match. The primary gaps are formal AI evaluation system ownership and staff-level positioning in leading AI engineering practices.
+            </p>
+
+            {/* Meta pills */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-xs text-white/40 pt-2">
+              <span className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-medium">
+                Model: Claude 3.5 Sonnet
+              </span>
+              <span className="rounded-full border border-white/5 bg-white/[0.02] px-3 py-1 font-medium">
+                Updated: June 2, 2026
+              </span>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full border border-white/8 bg-white/[0.04] px-3 py-1 font-medium text-white/60 hover:text-white transition flex items-center gap-1"
+              >
+                LinkedIn Job Post
+                <ExternalLink className="size-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Row (Visual only) */}
+        <div className="flex border-b border-white/8 mt-8 relative z-10 overflow-x-auto scrollbar-none">
+          {heroTabs.map((tab) => {
+            const isActive = tab.id === activeHeroTab;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveHeroTab(tab.id)}
+                className={`py-3 px-5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition duration-300 whitespace-nowrap cursor-pointer ${
+                  isActive
+                    ? "border-violet-500 text-white"
+                    : "border-transparent text-white/40 hover:text-white/70"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Bottom Grid: 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        {/* Areas to improve */}
+        <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+          <div>
+            <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+              <span className="size-2.5 rounded-full bg-amber-500 animate-pulse" />
+              Areas to Improve (Strategic Gaps)
+            </h4>
+            <p className="text-xs text-white/40 mt-1">
+              Reframing recommendations to address missing requirements for the role.
+            </p>
+          </div>
+
+          <div className="space-y-4 flex-1">
+            <div className="rounded-2xl border border-amber-500/10 bg-amber-500/[0.02] p-4 flex gap-4">
+              <div className="size-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                <span className="text-xs font-black text-amber-400">01</span>
+              </div>
+              <div>
+                <h5 className="text-sm font-bold text-white">AI Evaluation & Observability Systems</h5>
+                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                  The job demands designing evaluation pipelines for AI products. Detail how you evaluated the performance or accuracy of AI features at Edpuzzle.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-violet-500/10 bg-violet-500/[0.02] p-4 flex gap-4">
+              <div className="size-8 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
+                <span className="text-xs font-black text-violet-400">02</span>
+              </div>
+              <div>
+                <h5 className="text-sm font-bold text-white">Staff-Level Technical Leadership</h5>
+                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                  Provide evidence of establishing engineering standards, mentoring senior developers, and making cross-team architecture decisions.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-cyan-500/10 bg-cyan-500/[0.02] p-4 flex gap-4">
+              <div className="size-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                <span className="text-xs font-black text-cyan-400">03</span>
+              </div>
+              <div>
+                <h5 className="text-sm font-bold text-white">Platform-Oriented Architecture</h5>
+                <p className="text-xs text-white/50 mt-1 leading-relaxed">
+                  Shift language from &quot;building features&quot; to &quot;creating APIs, reusable components, and developer frameworks&quot; that empower other teams.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Keyword Alignment Dashboard */}
+        <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+          <div>
+            <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+              <Target className="size-5 text-indigo-400" />
+              Keyword & Signal Coverage
+            </h4>
+            <p className="text-xs text-white/40 mt-1">
+              Comparison between job requirements and signals detected in your CV.
+            </p>
+          </div>
+
+          <div className="space-y-5 flex-1">
+            {/* Matching keywords */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5 mb-2">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                Matching Signals (CV ↔ Offer)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {["Node.js", "High-traffic scale", "Product Ownership", "Redis caching", "Observability", "AI-assisted Workflows"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Missing keywords */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 mb-2">
+                <span className="size-1.5 rounded-full bg-amber-500" />
+                Missing Signals (Gaps)
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {["AI Evaluation Systems", "Staff Leadership Scope", "Platform-first wording", "E2E LLM Testing"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Offer Keywords */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mb-2">
+                <span className="size-1.5 rounded-full bg-white/30" />
+                Required in Offer
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {job.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-lg border border-white/8 bg-white/[0.03] px-2.5 py-1 text-xs font-semibold text-white/60"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation block */}
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={onNext}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 text-sm font-bold text-white transition hover:scale-[1.02] cursor-pointer"
+        >
+          Consult AI Copilot
+          <ArrowRight className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function JobMatchChatView({
+  onNext,
+  onBack,
+}: {
+  onNext: () => void;
+  onBack: () => void;
+}) {
+  const [messages, setMessages] = useState<Array<{ sender: "user" | "ai"; text: string }>>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [chatStep, setChatStep] = useState(0);
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => {
+      setMessages([{ sender: "user", text: job.chatQuestion }]);
+      setChatStep(1);
+    }, 500);
+
+    const timer2 = setTimeout(() => {
+      setIsTyping(true);
+      setChatStep(2);
+    }, 1500);
+
+    const timer3 = setTimeout(() => {
+      setIsTyping(false);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "ai", text: job.chatAnswer },
+      ]);
+      setChatStep(3);
+    }, 4500);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, []);
+
+  return (
+    <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
+      {/* Back link */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white transition cursor-pointer"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to Analysis
+        </button>
+        {chatStep === 3 && (
+          <button
+            onClick={onNext}
+            className="flex items-center gap-2 rounded-full bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-bold text-white transition cursor-pointer"
+          >
+            Track Opportunity
+            <ArrowRight className="size-3.5" />
+          </button>
+        )}
+      </div>
+
+      <div className="w-full rounded-3xl border border-white/10 bg-[#0c0d12]/50 p-6 sm:p-8 backdrop-blur-md relative overflow-hidden shadow-2xl flex flex-col min-h-[450px]">
+        {/* Ambient background glows */}
+        <div className="absolute -right-32 -top-32 size-96 bg-radial from-violet-500/[0.04] to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -left-32 -bottom-32 size-96 bg-radial from-indigo-500/[0.03] to-transparent blur-3xl pointer-events-none" />
+
+        {/* Chat header */}
+        <div className="flex items-center gap-3 pb-4 border-b border-white/8 relative z-10">
+          <div className="size-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <MessageSquare className="size-5 text-violet-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-extrabold text-white leading-none">Fabra Copilot</h3>
+            <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1 font-medium">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-ping" />
+              Online · Contextual Coaching
+            </p>
+          </div>
+        </div>
+
+        {/* Messages space */}
+        <div className="flex-1 py-6 space-y-6 overflow-y-auto relative z-10 min-h-[250px]">
+          {messages.map((msg, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-xl rounded-2xl p-4 text-sm leading-relaxed ${
+                  msg.sender === "user"
+                    ? "bg-violet-600/80 border border-violet-500/30 text-white rounded-br-none"
+                    : "bg-white/[0.03] border border-white/8 text-white/85 rounded-bl-none"
+                }`}
+              >
+                {msg.text}
+              </div>
+            </motion.div>
+          ))}
+
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-start"
+            >
+              <div className="bg-white/[0.03] border border-white/8 rounded-2xl rounded-bl-none p-4 flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-violet-400 animate-bounce animate-delay-100" />
+                <span className="size-2 rounded-full bg-violet-400 animate-bounce animate-delay-200" />
+                <span className="size-2 rounded-full bg-violet-400 animate-bounce animate-delay-300" />
+              </div>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Chat footer suggestions and input mock */}
+        <div className="mt-auto relative z-10 pt-4 border-t border-white/8">
+          {chatStep === 3 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap gap-2 mb-4"
+            >
+              {[
+                "Suggest bullets for Northstar AI",
+                "How do I prove my system scale?",
+                "Formulate questions to ask the interviewer",
+              ].map((pill) => (
+                <button
+                  key={pill}
+                  className="rounded-full border border-white/8 bg-white/[0.02] hover:bg-white/[0.08] hover:border-white/20 px-3.5 py-1.5 text-xs font-semibold text-white/50 hover:text-white/80 transition cursor-pointer"
+                >
+                  {pill}
+                </button>
+              ))}
+            </motion.div>
+          )}
+
+          <div className="relative">
+            <input
+              type="text"
+              disabled
+              placeholder={
+                chatStep < 3 ? "Copilot is working..." : "Ask a follow-up question..."
+              }
+              className="w-full h-12 rounded-xl border border-white/8 bg-white/[0.01] px-4 pr-12 text-sm text-white/40 outline-none cursor-not-allowed"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="size-8 rounded-lg bg-white/5 flex items-center justify-center">
+                <ArrowRight className="size-4 text-white/20" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {chatStep === 3 && (
+        <div className="flex justify-end mt-2">
+          <button
+            onClick={onNext}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 text-sm font-bold text-white transition hover:scale-[1.02] cursor-pointer"
+          >
+            Track in Kanban Board
+            <ArrowRight className="size-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function JobMatchTrackingView({
+  onBack,
+  onResetAll,
+}: {
+  onBack: () => void;
+  onResetAll: () => void;
+}) {
+  const [column, setColumn] = useState<"applied" | "interview-prep">("applied");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setColumn("interview-prep");
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const columns = [
+    { id: "applied", label: "Applied", color: "text-white/40" },
+    { id: "interview-prep", label: "Interview Prep", color: "text-indigo-400" },
+    { id: "interviewing", label: "Interviewing", color: "text-cyan-400" },
+  ];
+
+  const interviewQuestions = [
+    "Tell me about scaling systems under real traffic. How did you structure Node.js & MongoDB?",
+    "Explain how you would establish an evaluation framework for LLM product workflows.",
+  ];
+
+  return (
+    <div className="w-full flex flex-col gap-6 select-none animate-fadeIn">
+      {/* Back Link */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-xs font-semibold text-white/50 hover:text-white transition cursor-pointer"
+        >
+          <ArrowLeft className="size-3.5" />
+          Back to AI Chat
+        </button>
+        <button
+          onClick={onResetAll}
+          className="flex items-center gap-2 text-xs font-semibold text-violet-400 hover:text-violet-300 transition cursor-pointer"
+        >
+          Restart Sandbox
+          <Sparkles className="size-3.5" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+        {/* Kanban Board Column - takes 2/3 width on desktop */}
+        <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-6 sm:p-8 backdrop-blur-sm relative overflow-hidden flex flex-col gap-6">
+          <div>
+            <h4 className="text-lg font-extrabold text-white tracking-tight flex items-center gap-2">
+              <KanbanSquare className="size-5 text-violet-400" />
+              Active Opportunities
+            </h4>
+            <p className="text-xs text-white/40 mt-1">
+              Your tracking pipeline. Cards auto-update based on preparation status.
+            </p>
+          </div>
+
+          {/* Kanban Columns */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
+            {columns.map((col) => {
+              const hasCard =
+                (col.id === "applied" && column === "applied") ||
+                (col.id === "interview-prep" && column === "interview-prep");
+
+              return (
+                <div
+                  key={col.id}
+                  className="rounded-2xl bg-white/[0.01] border border-white/5 p-4 flex flex-col gap-4 min-h-[220px] transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <span className={`text-xs font-black uppercase tracking-wider ${col.color}`}>
+                      {col.label}
+                    </span>
+                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-bold text-white/40">
+                      {hasCard ? 1 : 0}
+                    </span>
+                  </div>
+
+                  <div className="relative flex-1 flex flex-col gap-3">
+                    {hasCard && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: "spring", stiffness: 180, damping: 20 }}
+                        className="rounded-xl border border-white/10 bg-[#090a10]/80 p-4 shadow-xl hover:border-violet-500/40 transition duration-300 relative group cursor-pointer"
+                      >
+                        {/* Interactive glow border on card */}
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none" />
+
+                        <div className="relative z-10 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black uppercase tracking-wider text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded">
+                              Northstar AI
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                              <Star className="size-3 fill-emerald-400" />
+                              84% Match
+                            </span>
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-black text-white">{job.title}</p>
+                            <p className="text-[11px] text-white/50 mt-0.5">Remote Europe</p>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[10px] text-white/40 border-t border-white/5 pt-2">
+                            <span>Status: Prep</span>
+                            <span>Added: Just now</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Sidebar Opportunity Detail Panel - takes 1/3 width on desktop */}
+        <div className="rounded-3xl border border-white/10 bg-[#0c0d12]/50 p-6 backdrop-blur-md relative overflow-hidden flex flex-col gap-6 shadow-2xl">
+          <div className="absolute -right-32 -bottom-32 size-64 bg-radial from-violet-500/[0.04] to-transparent blur-2xl pointer-events-none" />
+
+          {/* Header */}
+          <div className="border-b border-white/8 pb-4">
+            <span className="text-[9px] font-black tracking-[0.2em] uppercase text-indigo-400">
+              Details & Strategy
+            </span>
+            <h4 className="text-lg font-black text-white mt-1">Northstar AI</h4>
+            <p className="text-xs text-white/50">{job.title}</p>
+          </div>
+
+          {/* Strategy Details */}
+          <div className="space-y-5 flex-1 text-left">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mb-1.5">
+                <ClipboardList className="size-3.5 text-violet-400" />
+                Action Strategy
+              </span>
+              <p className="text-xs text-white/70 bg-white/[0.02] border border-white/5 rounded-xl p-3 leading-relaxed">
+                Connect technical scale evidence directly to metrics: 2M+ users and Node.js optimization. Address the AI Evaluation gap by referencing custom QA steps.
+              </p>
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/40 flex items-center gap-1.5 mb-2">
+                <HelpCircle className="size-3.5 text-cyan-400" />
+                Practice Interview Prep
+              </span>
+              <div className="space-y-3">
+                {interviewQuestions.map((q, i) => (
+                  <div
+                    key={i}
+                    className="rounded-xl border border-white/5 bg-white/[0.01] p-3 text-xs leading-relaxed text-white/75 relative"
+                  >
+                    <span className="absolute -top-1.5 left-3 bg-[#0c0d12] border border-white/10 px-1.5 py-0.5 rounded text-[8px] font-bold text-white/50">
+                      Q{i + 1}
+                    </span>
+                    <p className="mt-1">{q}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Conversion CTA */}
+          <div className="pt-4 border-t border-white/8">
+            <a
+              href={appUrl}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 px-6 text-sm font-black text-white transition hover:scale-[1.02] cursor-pointer shadow-lg shadow-violet-500/20"
+            >
+              Start crafting with Fabra
+              <Sparkles className="size-4" />
+            </a>
+            <p className="mt-2 text-[10px] text-white/30 text-center">
+              Connect your CV & unlock the full Workspace
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
