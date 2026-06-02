@@ -729,7 +729,7 @@ function RealCVPreview({
     if (t === "marco") return accent === "cool" ? "#1d4ed8" : "#1a1a2e";
     if (t === "pulso") return accent === "cool" ? "#6366f1" : "#0f766e";
     if (t === "filo") return accent === "cool" ? "#06b6d4" : "#9f1239";
-    return "#111827";
+    return accent === "cool" ? "#4f46e5" : "#111827";
   };
 
   const resolvedColor = getResolvedColor(template, accentColor);
@@ -760,9 +760,9 @@ function RealCVPreview({
       role: "Senior Software Engineer",
       dates: "Sep 2024 - Present",
       bullets: isSuggestionsApplied ? [
-        "✨ <strong>Drove feature delivery</strong> for a platform with <strong>2M+ daily active users</strong>, maintaining a <strong>99.98% uptime SLA</strong>.",
-        "✨ <strong>Architected and scaled</strong> high-throughput backend services (Node.js, MongoDB, Redis), reducing query latency by <strong>35%</strong>.",
-        "✨ <strong>Standardized AI-assisted engineering workflows</strong> across squads, boosting delivery velocity by <strong>22%</strong>."
+        "<strong>Drove feature delivery</strong> for a platform with <strong>2M+ daily active users</strong>, maintaining a <strong>99.98% uptime SLA</strong>.",
+        "<strong>Architected and scaled</strong> high-throughput backend services (Node.js, MongoDB, Redis), reducing query latency by <strong>35%</strong>.",
+        "<strong>Standardized AI-assisted engineering workflows</strong> across squads, boosting delivery velocity by <strong>22%</strong>."
       ] : [
         "Own product features end to end for a platform used by 2M+ daily active users.",
         "Operate Node.js, MongoDB and Redis systems under real production load.",
@@ -774,8 +774,8 @@ function RealCVPreview({
       role: "Tech Lead",
       dates: "Sep 2020 - Sep 2024",
       bullets: isSuggestionsApplied ? [
-        "✨ <strong>Steered product engineering</strong> and digital workflows for <strong>Grupo Prisa (Colombia)</strong>, scaling team capacity by <strong>40%</strong>.",
-        "✨ <strong>Designed event-driven analytical systems</strong> and DDD boundaries, accelerating data pipeline throughput by <strong>3x</strong>."
+        "<strong>Steered product engineering</strong> and digital workflows for <strong>Grupo Prisa (Colombia)</strong>, scaling team capacity by <strong>40%</strong>.",
+        "<strong>Designed event-driven analytical systems</strong> and DDD boundaries, accelerating data pipeline throughput by <strong>3x</strong>."
       ] : [
         "Built and scaled multidisciplinary engineering teams and delivery practices.",
         "Designed event-driven systems, DDD boundaries and data processing pipelines.",
@@ -793,7 +793,7 @@ function RealCVPreview({
     >
       {template === "raw" && (
         <header className="border-b border-slate-300 pb-4 text-left font-serif">
-          <h3 className="text-2xl font-bold text-black">{profile.name}</h3>
+          <h3 className="text-2xl font-bold uppercase tracking-tight" style={{ color: resolvedColor }}>{profile.name}</h3>
           <p className="text-xs text-slate-600 italic mt-0.5">{profile.role}</p>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500 font-medium">
             <p>📧 {profile.email}</p>
@@ -805,7 +805,7 @@ function RealCVPreview({
       {template === "linea" && (
         <header className="flex justify-between items-start border-b-[2.5px] pb-4 mb-5" style={{ borderBottomColor: resolvedColor }}>
           <div>
-            <h3 className="text-2xl font-black text-[#101010] leading-none mb-1">{profile.name}</h3>
+            <h3 className="text-2xl font-black leading-none mb-1" style={{ color: resolvedColor }}>{profile.name}</h3>
             <p className="text-[11px] text-[#505050] font-semibold uppercase tracking-wider">{profile.role}</p>
           </div>
           <div className="text-right text-[10.5px] text-[#4f4f4f] flex flex-col gap-0.5 mt-0.5">
@@ -829,7 +829,7 @@ function RealCVPreview({
 
       {template === "pulso" && (
         <header className="flex flex-col gap-1 pb-4 mb-4">
-          <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none mb-1">{profile.name}</h3>
+          <h3 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-none mb-1" style={{ color: accentColor === "cool" ? resolvedColor : undefined }}>{profile.name}</h3>
           <p className="text-[11px] font-black uppercase tracking-wider" style={{ color: resolvedColor }}>{profile.role}</p>
           <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#4f4f4f] font-semibold">
             <span>{profile.email}</span>
@@ -841,7 +841,7 @@ function RealCVPreview({
 
       {template === "filo" && (
         <header className="flex flex-col gap-1.5 pb-4 mb-4 border-t-[6px] border-b-2 border-b-[#171717] pt-3.5" style={{ borderTopColor: resolvedColor }}>
-          <h3 className="text-3xl font-black text-[#111111] uppercase tracking-tight leading-none mb-0.5">{profile.name}</h3>
+          <h3 className="text-3xl font-black uppercase tracking-tight leading-none mb-0.5" style={{ color: accentColor === "cool" ? resolvedColor : "#111111" }}>{profile.name}</h3>
           <p className="text-[10.5px] font-black uppercase tracking-wider" style={{ color: resolvedColor }}>{profile.role}</p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10.5px] font-bold text-[#3f3f46]">
             <span>{profile.email}</span>
@@ -861,14 +861,14 @@ function RealCVPreview({
                     <div className="transition-all duration-500 rounded-lg p-1.5">
                       {isSummaryCondensed ? (
                         <p dangerouslySetInnerHTML={{ __html: isSuggestionsApplied 
-                          ? "✨ <strong>Senior Software Engineer</strong> with 10+ years scaling high-traffic systems (<strong>2M+ DAU</strong>) and directing developer velocity workflows at Edpuzzle. Expert in backend performance, DDD, and event-driven architectures."
+                          ? "<strong>Senior Software Engineer</strong> with 10+ years scaling high-traffic systems (<strong>2M+ DAU</strong>) and directing developer velocity workflows at Edpuzzle. Expert in backend performance, DDD, and event-driven architectures."
                           : "Senior Software Engineer with 10+ years of experience scaling high-traffic applications (<strong>2M+ DAU</strong>) and leading AI-first developer workflows at Edpuzzle. Expert in backend architecture, system design, DDD, and event-driven microservices."
                         }} />
                       ) : (
                         <div className="space-y-1.5">
                           {isSuggestionsApplied ? (
                             <p>
-                              ✨ Senior Software Engineer with 10+ years building high-scale product systems and AI-assisted engineering workflows. I connect backend architecture, product iteration, and developer productivity to ship reliable AI-powered experiences faster.
+                              Senior Software Engineer with 10+ years building high-scale product systems and AI-assisted engineering workflows. I connect backend architecture, product iteration, and developer productivity to ship reliable AI-powered experiences faster.
                             </p>
                           ) : (
                             <>
@@ -984,7 +984,7 @@ function CVSection({
     if (t === "marco") return accent === "cool" ? "#1d4ed8" : "#1a1a2e";
     if (t === "pulso") return accent === "cool" ? "#6366f1" : "#0f766e";
     if (t === "filo") return accent === "cool" ? "#06b6d4" : "#9f1239";
-    return "#111827";
+    return accent === "cool" ? "#4f46e5" : "#111827";
   };
 
   const resolvedColor = getResolvedColor(template, accentColor);
@@ -993,8 +993,8 @@ function CVSection({
     return (
       <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-sans`}>
         <h4 
-          className="border-b pb-1 font-extrabold uppercase tracking-wider text-slate-900 text-[10.5px] sm:text-[11px]"
-          style={{ borderBottomColor: '#dfd9ce' }}
+          className="border-b pb-1 font-extrabold uppercase tracking-wider text-[10.5px] sm:text-[11px]"
+          style={{ borderBottomColor: accentColor === "cool" ? resolvedColor : '#dfd9ce', color: accentColor === "cool" ? resolvedColor : '#111827' }}
         >
           {title}
         </h4>
@@ -1019,8 +1019,8 @@ function CVSection({
     return (
       <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left`}>
         <h4 
-          className="border-t-2 border-b py-1.5 font-black uppercase tracking-wider text-[10.5px] sm:text-[11px] text-[#171717]"
-          style={{ borderTopColor: resolvedColor, borderBottomColor: '#171717' }}
+          className="border-t-2 border-b py-1.5 font-black uppercase tracking-wider text-[10.5px] sm:text-[11px]"
+          style={{ borderTopColor: resolvedColor, borderBottomColor: '#171717', color: accentColor === "cool" ? resolvedColor : '#171717' }}
         >
           {title}
         </h4>
@@ -1031,7 +1031,10 @@ function CVSection({
   if (template === "raw") {
     return (
       <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-serif`}>
-        <h4 className="mb-1 border-b border-slate-300 pb-0.5 font-bold uppercase tracking-wider text-black text-[11px] sm:text-[11.5px]">
+        <h4 
+          className="mb-1 border-b border-slate-300 pb-0.5 font-bold uppercase tracking-wider text-[11px] sm:text-[11.5px]"
+          style={{ color: resolvedColor }}
+        >
           {title}
         </h4>
         <div className="space-y-1.5 text-slate-800 text-[10.5px] sm:text-[11px] leading-relaxed">{children}</div>
@@ -1234,7 +1237,6 @@ function TemplateSelectionView({
     readonly description: string;
     readonly tag: string;
     readonly badgeColor: string;
-    readonly recommended?: boolean;
     readonly previewLines: ReadonlyArray<string>;
   }> = [
     {
@@ -1268,7 +1270,6 @@ function TemplateSelectionView({
       name: "Pulso",
       description: "Modern, energetic, and visually alive. Recommended for technology and startup roles.",
       tag: "Protagonist",
-      recommended: true,
       badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
       previewLines: [
         "◆ JONATHAN DE LA SEN",
@@ -1310,15 +1311,8 @@ function TemplateSelectionView({
             whileHover={{ y: -6, scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
             onClick={() => onSelectTemplate(tpl.id)}
-            className={`relative flex flex-col text-left rounded-3xl border p-6 bg-gradient-to-b from-[#11131b]/90 to-[#0b0c10]/95 hover:border-violet-500/30 transition-all duration-300 group cursor-pointer shadow-xl ${
-              tpl.recommended ? "border-emerald-500/30 shadow-[0_12px_30px_rgba(16,185,129,0.05)]" : "border-white/10"
-            }`}
+            className="relative flex flex-col text-left rounded-3xl border border-white/10 p-6 bg-gradient-to-b from-[#11131b]/90 to-[#0b0c10]/95 hover:border-violet-500/30 transition-all duration-300 group cursor-pointer shadow-xl"
           >
-            {tpl.recommended && (
-              <span className="absolute -top-3 right-6 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-black shadow-lg">
-                Recommended
-              </span>
-            )}
             
             <div className="flex items-center justify-between mb-4">
               <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tpl.badgeColor}`}>
@@ -1334,12 +1328,12 @@ function TemplateSelectionView({
             </p>
 
             {/* Live miniature preview of the template */}
-            <div className="mt-5 h-[235px] w-full rounded-xl bg-slate-950/50 border border-white/5 overflow-hidden relative select-none pointer-events-none flex justify-center items-start">
+            <div className="mt-5 h-[300px] w-full rounded-xl bg-slate-950/50 border border-white/5 overflow-hidden relative select-none pointer-events-none flex justify-center items-start">
               <div 
                 className="relative shrink-0 origin-top"
                 style={{
                   width: '500px',
-                  transform: 'scale(0.45)',
+                  transform: 'scale(0.58)',
                   marginTop: '8px',
                 }}
               >
@@ -1413,7 +1407,7 @@ function TemplateStudioView({
     } else if (type === "summary") {
       userText = "✍️ Condense the professional summary paragraph.";
     } else if (type === "suggestions") {
-      userText = "✨ Implement AI recommendations from profile analysis.";
+      userText = "Implement AI recommendations from profile analysis.";
     }
 
     setMessages((prev) => [...prev, { sender: "user", text: userText }]);
