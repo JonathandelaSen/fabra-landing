@@ -83,61 +83,111 @@ interface AppFeature {
   teaser: string;
   description: string;
   icon: React.ComponentType<any>;
-  color: "emerald" | "violet" | "amber" | "indigo" | "cyan";
+  color: "emerald" | "violet" | "amber" | "indigo" | "cyan" | "rose";
   top: string;
   left: string;
 }
 
 const APP_FEATURES: AppFeature[] = [
   {
-    id: "cv-intelligence",
-    title: "AI CV Intelligence",
-    teaser: "Semantic structure & keyword parsing",
-    description: "Upload your CV and see it parsed into discrete semantic fields. Our models scan and evaluate technical alignment, providing immediate feedback on how a recruiter or automated parsing tool reads your background.",
+    id: "analisis-cv",
+    title: "Análisis de CV",
+    teaser: "Diagnóstico inteligente de tu perfil profesional",
+    description: "Analiza tu currículum con IA para identificar puntos fuertes, áreas de mejora clave, legibilidad para herramientas ATS y densidad de palabras clave adaptadas a tu sector laboral.",
     icon: FileText,
     color: "emerald",
-    top: "10%",
+    top: "5%",
     left: "5%",
   },
   {
-    id: "template-studio",
-    title: "Template Studio",
-    teaser: "Tailor sections & accents via AI prompts",
-    description: "Reshape your CV in seconds. Choose from premium templates and instruct the AI to optimize specific blocks, modify highlights, adjust sections order, and adjust aesthetic tones interactively.",
+    id: "biblioteca-cvs",
+    title: "Biblioteca de CVs",
+    teaser: "Historial y versiones optimizadas en un solo lugar",
+    description: "Mantén todas las versiones de tu CV organizadas y accesibles. Compara versiones anteriores, recupera secciones y realiza un seguimiento de los cambios aplicados en tu historial.",
+    icon: Briefcase,
+    color: "indigo",
+    top: "18%",
+    left: "45%",
+  },
+  {
+    id: "plantillas",
+    title: "Plantillas",
+    teaser: "Diseños profesionales de alto impacto visual",
+    description: "Exporta tu perfil en plantillas elegantes y validadas por reclutadores como Linea, Marco, Pulso o Filo, ajustando los colores y la estructura de forma instantánea.",
     icon: Sparkles,
     color: "violet",
-    top: "38%",
-    left: "42%",
+    top: "8%",
+    left: "75%",
   },
   {
-    id: "job-matchmaker",
-    title: "Job Matchmaker",
-    teaser: "Requirement gap & score grading",
-    description: "Compare your tailored CV against specific role opportunities. Understand your precise alignment score, identify critical gaps, missing keywords, and get structural recommendations on how to bridge the difference.",
+    id: "carrera-profesional",
+    title: "Carrera profesional",
+    teaser: "Tu centro de control laboral a largo plazo",
+    description: "Define tu rumbo profesional. Consolida toda tu experiencia laboral, feedback formal, proyectos destacados y objetivos de crecimiento en un espacio personal único y privado.",
+    icon: Globe,
+    color: "cyan",
+    top: "32%",
+    left: "10%",
+  },
+  {
+    id: "analisis-ofertas",
+    title: "Análisis de ofertas",
+    teaser: "Mide tu compatibilidad con cada puesto",
+    description: "Compara tu currículum directamente con la descripción de una oferta de empleo para obtener tu puntuación de afinidad, identificar requisitos faltantes y ajustar tu CV.",
     icon: Target,
     color: "amber",
-    top: "20%",
-    left: "68%",
+    top: "45%",
+    left: "48%",
   },
   {
-    id: "ai-coach",
-    title: "AI Interview Coach",
-    teaser: "Simulated prep & positioning advice",
-    description: "Talk to a dedicated AI career partner. Generate highly contextual interview questions based on the targeted role description and get real-time feedback on how to position your experience.",
-    icon: MessageSquare,
-    color: "indigo",
-    top: "68%",
-    left: "15%",
+    id: "preguntas-entrevista",
+    title: "Preguntas entrevista",
+    teaser: "Prepárate con cuestionarios personalizados por IA",
+    description: "Genera preguntas de entrevista basadas en la oferta que te interesa y practica tus respuestas con el feedback y consejos de posicionamiento de nuestro copiloto de IA.",
+    icon: HelpCircle,
+    color: "rose",
+    top: "35%",
+    left: "76%",
   },
   {
-    id: "opportunity-tracker",
-    title: "Opportunity Tracker",
-    teaser: "Kanban pipeline for active applications",
-    description: "Keep all your application processes organized. Drag-and-drop jobs through standard hiring stages, save tailored CV drafts for each role, link directly to interview prep questions, and record interview logs.",
-    icon: KanbanSquare,
+    id: "diario-trabajo",
+    title: "Diario de trabajo",
+    teaser: "Registra tus logros y hitos del día a día",
+    description: "Anota tus victorias diarias, proyectos finalizados e hitos importantes. Convierte este historial en evidencias de valor para tus revisiones de desempeño y actualizaciones de CV.",
+    icon: Trophy,
+    color: "emerald",
+    top: "60%",
+    left: "8%",
+  },
+  {
+    id: "objetivos",
+    title: "Objetivos",
+    teaser: "Planifica y alcanza tus metas de desarrollo",
+    description: "Establece metas profesionales a corto y largo plazo. Vincula tus actividades diarias y la retroalimentación recibida para avanzar de forma constante hacia tu próximo gran paso.",
+    icon: Star,
     color: "cyan",
-    top: "72%",
-    left: "58%",
+    top: "75%",
+    left: "38%",
+  },
+  {
+    id: "feedback-recibido",
+    title: "Feedback recibido",
+    teaser: "Centraliza las valoraciones de tu equipo",
+    description: "Guarda la retroalimentación formal e informal de tus compañeros, mánagers y clientes para extraer señales claras de tus fortalezas y aspectos a mejorar.",
+    icon: MessageSquare,
+    color: "violet",
+    top: "66%",
+    left: "70%",
+  },
+  {
+    id: "notas-feedback",
+    title: "Notas de feedback",
+    teaser: "Reflexiones y planes de acción personales",
+    description: "Analiza el feedback recibido y documenta planes de acción concretos, notas de reuniones de desarrollo y estrategias para potenciar tus habilidades clave.",
+    icon: ClipboardList,
+    color: "indigo",
+    top: "84%",
+    left: "12%",
   },
 ];
 
@@ -171,6 +221,12 @@ const featureColorMap: Record<string, { bg: string; text: string; border: string
     text: "text-cyan-400",
     border: "border-cyan-500/20 hover:border-cyan-500/35",
     glow: "shadow-[0_0_20px_rgba(6,182,212,0.08)] hover:shadow-[0_0_30px_rgba(6,182,212,0.22)]",
+  },
+  rose: {
+    bg: "bg-rose-500/10 hover:bg-rose-500/15",
+    text: "text-rose-400",
+    border: "border-rose-500/20 hover:border-rose-500/35",
+    glow: "shadow-[0_0_20px_rgba(244,63,94,0.08)] hover:shadow-[0_0_30px_rgba(244,63,94,0.22)]",
   },
 };
 
@@ -392,10 +448,10 @@ export function LandingExperience() {
                   Start crafting with Fabra
                 </a>
               </div>
-            </motion.div>
+             </motion.div>
 
             {/* Floating features canvas (Desktop only) */}
-            <div className="lg:col-span-5 hidden lg:block relative min-h-[480px] w-full select-none">
+            <div className="lg:col-span-5 hidden lg:block relative min-h-[640px] w-full select-none">
               {APP_FEATURES.map((feature, index) => {
                 const styles = featureColorMap[feature.color];
                 return (
@@ -418,7 +474,7 @@ export function LandingExperience() {
                     }}
                     whileTap={{ scale: 0.96 }}
                     onClick={() => setSelectedFeature(feature)}
-                    className={`absolute p-4 rounded-2xl glass flex items-center gap-4 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 select-none z-10 max-w-[280px]`}
+                    className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 select-none z-10 w-[230px]`}
                     style={{ top: feature.top, left: feature.left }}
                   >
                     <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
