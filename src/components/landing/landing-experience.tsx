@@ -15,12 +15,12 @@ import {
 } from "lucide-react";
 import { appUrl, cvAnalysis, profile } from "@/lib/demo-data";
 
-type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis";
+type FlowStep = "idle" | "uploading" | "ready" | "loading" | "analysis" | "templates" | "studio";
 
 const stepper = [
   { key: "upload", label: "Upload CV" },
   { key: "analysis", label: "AI analysis" },
-  { key: "insights", label: "Insights" },
+  { key: "studio", label: "Template Studio" },
 ] as const;
 
 const keywords = [
@@ -62,6 +62,12 @@ export function LandingExperience() {
   const flowRef = useRef<HTMLElement | null>(null);
   const isScrollingRef = useRef(false);
 
+  // Template Customizer Sandbox States
+  const [selectedTemplate, setSelectedTemplate] = useState<"linea" | "marco" | "pulso" | "filo">("pulso");
+  const [accentColor, setAccentColor] = useState<"default" | "cool">("default");
+  const [skillsPosition, setSkillsPosition] = useState<"bottom" | "top">("bottom");
+  const [isSummaryCondensed, setIsSummaryCondensed] = useState(false);
+
   useEffect(() => {
     if (step !== "uploading") return;
 
@@ -70,7 +76,7 @@ export function LandingExperience() {
   }, [step]);
 
   useEffect(() => {
-    if (step === "analysis") {
+    if (step === "analysis" || step === "templates" || step === "studio") {
       flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [step]);
@@ -86,24 +92,28 @@ export function LandingExperience() {
 
   const reset = () => {
     setStep("idle");
+    setSelectedTemplate("pulso");
+    setAccentColor("default");
+    setSkillsPosition("bottom");
+    setIsSummaryCondensed(false);
     flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const handleTabClick = (tabKey: "upload" | "analysis" | "insights") => {
+  const handleTabClick = (tabKey: "upload" | "analysis" | "studio") => {
     if (tabKey === "upload") {
-      if (step === "analysis" || step === "loading") {
+      if (step === "analysis" || step === "loading" || step === "templates" || step === "studio") {
         setStep("ready");
       } else {
         setStep("idle");
       }
     } else if (tabKey === "analysis") {
-      if (step === "ready" || step === "analysis") {
+      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio") {
         setStep("loading");
         window.setTimeout(() => setStep("analysis"), 3800);
       }
-    } else if (tabKey === "insights") {
-      if (step === "ready" || step === "loading" || step === "analysis") {
-        setStep("analysis");
+    } else if (tabKey === "studio") {
+      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio") {
+        setStep("templates");
       }
     }
   };
@@ -255,7 +265,41 @@ export function LandingExperience() {
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-8"
               >
-                <AnalysisExperience onReset={reset} />
+                <AnalysisExperience onReset={reset} onImprove={() => setStep("templates")} />
+              </motion.div>
+            ) : step === "templates" ? (
+              <motion.div
+                key="templates"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <TemplateSelectionView onSelectTemplate={(tpl) => {
+                  setSelectedTemplate(tpl);
+                  setStep("studio");
+                }} />
+              </motion.div>
+            ) : step === "studio" ? (
+              <motion.div
+                key="studio"
+                initial={{ opacity: 0, y: 28, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.42, ease: "easeOut" }}
+                className="mt-8"
+              >
+                <TemplateStudioView 
+                  template={selectedTemplate}
+                  onChangeTemplate={() => setStep("templates")}
+                  accentColor={accentColor}
+                  setAccentColor={setAccentColor}
+                  skillsPosition={skillsPosition}
+                  setSkillsPosition={setSkillsPosition}
+                  isSummaryCondensed={isSummaryCondensed}
+                  setIsSummaryCondensed={setIsSummaryCondensed}
+                />
               </motion.div>
             ) : step === "loading" ? (
               <motion.div
@@ -319,6 +363,18 @@ function GuideBanner({ step }: { step: FlowStep }) {
           badge: "05 · FINAL DIAGNOSIS",
           title: "Strategic diagnostic report generated!",
           glowColor: "234, 179, 8", // yellow
+        };
+      case "templates":
+        return {
+          badge: "06 · TEMPLATE STUDIO",
+          title: "Select your preferred layout template",
+          glowColor: "99, 102, 241", // indigo
+        };
+      case "studio":
+        return {
+          badge: "07 · DYNAMIC TAILORING",
+          title: "Use conversational prompts to polish your CV",
+          glowColor: "168, 85, 247", // purple
         };
       default:
         return null;
@@ -437,9 +493,12 @@ function FlowHeader({
   onTabClick,
 }: {
   current: FlowStep;
-  onTabClick: (key: "upload" | "analysis" | "insights") => void;
+  onTabClick: (key: "upload" | "analysis" | "studio") => void;
 }) {
-  const activeIndex = current === "idle" || current === "uploading" || current === "ready" ? 0 : current === "loading" ? 1 : 2;
+  const activeIndex = 
+    current === "idle" || current === "uploading" || current === "ready" ? 0 : 
+    current === "loading" || current === "analysis" ? 1 : 
+    2;
   const canNavigateToAnalysis = current !== "idle" && current !== "uploading";
 
   return (
@@ -645,93 +704,220 @@ function UploadDropzone({ ready, uploading }: { ready: boolean; uploading: boole
   );
 }
 
-function RealCVPreview({ small = false }: { small?: boolean }) {
+function RealCVPreview({
+  template = "pulso",
+  accentColor = "default",
+  skillsPosition = "bottom",
+  isSummaryCondensed = false,
+  small = false,
+}: {
+  template?: "linea" | "marco" | "pulso" | "filo";
+  accentColor?: "default" | "cool";
+  skillsPosition?: "bottom" | "top";
+  isSummaryCondensed?: boolean;
+  small?: boolean;
+}) {
+  const getTemplatePaperStyle = (t: string) => {
+    if (t === "linea") return "font-mono bg-[#fafafa] border-slate-200 text-slate-800";
+    if (t === "marco") return "font-serif bg-[#fdfdfd] border-red-200 text-slate-900";
+    if (t === "pulso") return "font-sans bg-[#ffffff] border-slate-100 text-slate-800";
+    if (t === "filo") return "font-sans bg-[#fafbfc] border-slate-200 text-slate-850";
+    return "bg-white";
+  };
+
+  const getAccentBgClass = (t: string, col: "default" | "cool") => {
+    if (t === "linea") return "bg-slate-200 text-slate-800";
+    if (t === "marco") return col === "default" ? "bg-red-50 text-red-800" : "bg-blue-50 text-blue-900";
+    if (t === "pulso") return col === "default" ? "bg-emerald-50 text-emerald-700" : "bg-violet-50 text-violet-700";
+    if (t === "filo") return col === "default" ? "bg-orange-50 text-orange-700" : "bg-cyan-50 text-cyan-700";
+    return "bg-slate-100";
+  };
+
+  const sectionIds = skillsPosition === "top" 
+    ? ["skills", "summary", "experience"] 
+    : ["summary", "experience", "skills"];
+
   return (
     <div
-      className={`cv-paper mx-auto rounded-lg shadow-2xl transition-all duration-300 ${
+      className={`cv-paper mx-auto rounded-lg shadow-2xl transition-all duration-300 ${getTemplatePaperStyle(template)} ${
         small
           ? "max-h-[460px] max-w-[390px] overflow-hidden p-5 text-[10px]"
           : "w-full max-w-[680px] p-10 sm:p-12 text-[12px] flex flex-col"
       }`}
     >
-      <header className={`${small ? "border-b border-slate-200 pb-2" : "border-b-2 border-slate-200 pb-4"}`}>
-        <h3 className={`${small ? "text-sm" : "text-[22px]"} font-medium tracking-wide text-slate-900`}>
-          {profile.name} · {profile.role}
+      <header className={`border-b pb-4 ${
+        template === "linea" ? "border-slate-200 text-left" :
+        template === "marco" ? "border-slate-300 text-center" :
+        template === "pulso" ? `${accentColor === "default" ? "border-emerald-100" : "border-violet-100"} text-left` :
+        "border-slate-200 text-left"
+      }`}>
+        <h3 className={`font-black tracking-wide ${
+          template === "linea" ? "text-base uppercase" :
+          template === "marco" ? "text-xl italic font-semibold text-slate-900" :
+          template === "pulso" ? "text-2xl font-extrabold text-slate-900" :
+          "text-lg font-bold text-slate-900"
+        }`}>
+          {profile.name}
         </h3>
-        <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 ${small ? "text-[9px]" : "text-[12px]"} font-semibold text-slate-600`}>
+        <p className={`text-xs font-semibold ${
+          template === "linea" ? "text-slate-600 uppercase" :
+          template === "marco" ? "text-slate-500 uppercase tracking-widest text-slate-700" :
+          template === "pulso" ? `${accentColor === "default" ? "text-emerald-600" : "text-violet-600"}` :
+          "text-slate-700"
+        }`}>
+          {profile.role}
+        </p>
+        <div className={`mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600 ${template === "marco" ? "justify-center" : "justify-start"}`}>
           <p>📧 {profile.email}</p>
           <p>💻 github.com/JonathandelaSen</p>
         </div>
       </header>
       
-      <div className="flex-1 flex flex-col">
-        <CVSection title="About me" small={small}>
-          <p>
-            Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
-            Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
-            high-throughput services under real production load.
-          </p>
-          <p>
-            I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
-            experience, as well as system design, DDD, CQRS and event-driven systems.
-          </p>
-          <p>
-            At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
-            helping standardize tooling and improve engineering context for AI-assisted work.
-          </p>
-        </CVSection>
+      <motion.div layout className="flex-1 flex flex-col">
+        <AnimatePresence mode="popLayout">
+          {sectionIds.map((secId) => {
+            if (secId === "summary") {
+              return (
+                <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="summary">
+                  <CVSection title="About me" small={small} template={template} accentColor={accentColor}>
+                    {isSummaryCondensed ? (
+                      <p>
+                        Senior Software Engineer with 10+ years of experience scaling high-traffic applications (<strong>2M+ DAU</strong>) and leading AI-first developer workflows at Edpuzzle. Expert in backend architecture, system design, DDD, and event-driven microservices.
+                      </p>
+                    ) : (
+                      <>
+                        <p>
+                          Senior Software Engineer with 10+ years of experience building and scaling high-traffic web applications end to end.
+                          Currently at Edpuzzle, I work on core learning systems used by <strong>2M+ daily active users</strong>, operating
+                          high-throughput services under real production load.
+                        </p>
+                        <p>
+                          I specialize in full-stack development with strong <strong>backend</strong> expertise and <strong>frontend</strong>
+                          experience, as well as system design, DDD, CQRS and event-driven systems.
+                        </p>
+                        <p>
+                          At Edpuzzle, I have been actively involved in the team&apos;s transition toward an <strong>AI-first development approach</strong>,
+                          helping standardize tooling and improve engineering context for AI-assisted work.
+                        </p>
+                      </>
+                    )}
+                  </CVSection>
+                </motion.div>
+              );
+            }
+            if (secId === "experience") {
+              return (
+                <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="experience">
+                  <CVSection title="Work experience" small={small} template={template} accentColor={accentColor}>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="flex justify-between font-bold text-slate-800">
+                          <span>Senior Software Engineer at Edpuzzle</span>
+                          <span className="text-slate-500 font-normal">Sep 2024 - Present</span>
+                        </p>
+                        <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
+                          <li>Own features end-to-end for a platform with <strong>2M+ daily active users</strong>.</li>
+                          <li>Develop and operate high throughput backend services using Node.js, Express, MongoDB and Redis.</li>
+                          <li>Design monitoring pipelines and dashboards using DataDog.</li>
+                        </ul>
+                      </div>
 
-        <CVSection title="Work experience" small={small}>
-          <div className="space-y-4">
-            <div>
-              <p className="flex justify-between font-bold text-slate-800">
-                <span>Senior Software Engineer at Edpuzzle</span>
-                <span className="text-slate-500 font-normal">Sep 2024 - Present</span>
-              </p>
-              <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
-                <li>Own features end-to-end for a platform with <strong>2M+ daily active users</strong>.</li>
-                <li>Develop and operate high throughput backend services using Node.js, Express, MongoDB and Redis.</li>
-                <li>Design monitoring pipelines and dashboards using DataDog.</li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="flex justify-between font-bold text-slate-800">
-                <span>Tech Lead at Dezzai</span>
-                <span className="text-slate-500 font-normal">Sep 2020 - Present</span>
-              </p>
-              <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
-                <li>Collaborated with external partners such as <strong>Grupo Prisa (Colombia)</strong> to design digitizing workflows (EGMs).</li>
-                <li>Built and scaled a multidisciplinary engineering team, improving development practices.</li>
-                <li>Designed backend systems using event-driven architecture, DDD, and scalable data pipelines.</li>
-                <li>Coordinated closely with data science teams to integrate trained models.</li>
-                <li>Temporarily assumed <strong>CTO responsibilities</strong> during two extended leaves.</li>
-              </ul>
-            </div>
-          </div>
-        </CVSection>
-      </div>
+                      <div>
+                        <p className="flex justify-between font-bold text-slate-800">
+                          <span>Tech Lead at Dezzai</span>
+                          <span className="text-slate-500 font-normal">Sep 2020 - Sep 2024</span>
+                        </p>
+                        <ul className={`mt-2 space-y-1 pl-4 list-disc ${small ? "text-[9px] leading-relaxed" : "text-[11px] leading-relaxed"} text-slate-700`}>
+                          <li>Collaborated with external partners such as <strong>Grupo Prisa (Colombia)</strong> to design digitizing workflows.</li>
+                          <li>Built and scaled a multidisciplinary engineering team, improving development practices.</li>
+                          <li>Designed backend systems using event-driven architecture, DDD, and scalable data pipelines.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CVSection>
+                </motion.div>
+              );
+            }
+            if (secId === "skills") {
+              return (
+                <motion.div layout transition={{ type: "spring", stiffness: 100, damping: 15 }} key="skills">
+                  <CVSection title="Skills" small={small} template={template} accentColor={accentColor}>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {["Node.js", "TypeScript", "MongoDB", "Redis", "React", "DDD", "CQRS", "Observability", "AI workflows"].map((skill) => (
+                        <span key={skill} className={`px-2 py-0.5 rounded text-[10px] font-bold ${getAccentBgClass(template, accentColor)}`}>
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </CVSection>
+                </motion.div>
+              );
+            }
+            return null;
+          })}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
 
-function CVSection({ title, children, small = false }: { title: string; children: React.ReactNode; small?: boolean }) {
+function CVSection({
+  title,
+  children,
+  small = false,
+  template = "pulso",
+  accentColor = "default",
+}: {
+  title: string;
+  children: React.ReactNode;
+  small?: boolean;
+  template?: "linea" | "marco" | "pulso" | "filo";
+  accentColor?: "default" | "cool";
+}) {
+  if (template === "linea") {
+    return (
+      <section className={`${small ? "mt-3" : "mt-5"} text-slate-800 text-left font-mono`}>
+        <h4 className="border-b border-slate-300 pb-0.5 font-bold uppercase tracking-wider text-slate-900 text-[10px] sm:text-[11px]">{title}</h4>
+        <div className="mt-2 space-y-1.5 text-slate-700 text-[9px] sm:text-[11px] leading-relaxed">{children}</div>
+      </section>
+    );
+  }
+  if (template === "marco") {
+    const color = accentColor === "default" ? "text-red-800" : "text-blue-900";
+    return (
+      <section className={`${small ? "mt-4" : "mt-6"} text-slate-900 text-left font-serif`}>
+        <h4 className={`border-b border-double border-slate-300 pb-1 font-bold text-center uppercase tracking-widest ${color} text-[11px] sm:text-[12px]`}>{title}</h4>
+        <div className="mt-2.5 space-y-2 text-slate-800 text-[10px] sm:text-[11px] leading-relaxed">{children}</div>
+      </section>
+    );
+  }
+  if (template === "filo") {
+    const border = accentColor === "default" ? "border-orange-500" : "border-cyan-500";
+    return (
+      <section className={`${small ? "mt-4" : "mt-6"} text-slate-800 text-left pl-3 border-l-2 ${border}`}>
+        <h4 className="mb-1 font-bold uppercase tracking-wider text-slate-900 text-[10px] sm:text-[11px]">{title}</h4>
+        <div className="space-y-1.5 text-slate-700 text-[9.5px] sm:text-[11px] leading-relaxed">{children}</div>
+      </section>
+    );
+  }
+  // Default is "pulso"
+  const color = accentColor === "default" ? "text-emerald-600" : "text-violet-600";
   return (
     <section className={`${small ? "mt-4" : "mt-6"} text-slate-800 text-left`}>
-      <h4 className={`mb-1.5 font-black uppercase tracking-wide text-[#f25778] ${small ? "text-[11px]" : "text-[14px]"}`}>{title}</h4>
-      <div className={`${small ? "space-y-1.5 text-[9px] leading-relaxed" : "space-y-2 text-[12px] leading-relaxed"}`}>{children}</div>
+      <h4 className={`mb-1.5 font-extrabold uppercase tracking-wider ${color} text-[11px] sm:text-[12px]`}>{title}</h4>
+      <div className="space-y-2 text-slate-700 text-[10px] sm:text-[11px] leading-relaxed">{children}</div>
     </section>
   );
 }
 
-function AnalysisExperience({ onReset }: { onReset: () => void }) {
+function AnalysisExperience({ onReset, onImprove }: { onReset: () => void; onImprove: () => void }) {
   return (
     <div className="relative w-full">
       {/* Resplandor ambiental de fondo */}
       <div className="absolute inset-0 -z-10 bg-radial from-violet-600/10 to-transparent blur-3xl pointer-events-none" />
       
       <div className="space-y-10">
-        <AnalysisHero onReset={onReset} />
+        <AnalysisHero onReset={onReset} onImprove={onImprove} />
         <div className="grid gap-8 lg:grid-cols-2">
           <ImprovementPanel />
           <KeywordsPanel />
@@ -741,7 +927,7 @@ function AnalysisExperience({ onReset }: { onReset: () => void }) {
   );
 }
 
-function AnalysisHero({ onReset }: { onReset: () => void }) {
+function AnalysisHero({ onReset, onImprove }: { onReset: () => void; onImprove: () => void }) {
   return (
     <div className="rounded-3xl border border-amber-500/18 bg-gradient-to-br from-amber-500/[0.12] via-amber-600/[0.03] to-transparent p-8 sm:p-10 shadow-[0_24px_80px_rgba(245,158,11,0.08)] relative overflow-hidden">
       {/* Resplandor interior decorativo */}
@@ -786,6 +972,24 @@ function AnalysisHero({ onReset }: { onReset: () => void }) {
           <MetaPill>gemini-2.5-flash</MetaPill>
           <MetaPill>June 2, 2026 · 00:38</MetaPill>
           <MetaPill accent>jonathandelasen cv.pdf <ExternalLink className="size-3" /></MetaPill>
+        </div>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={onReset}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-6 text-sm font-bold text-rose-200 hover:bg-rose-500/20 transition duration-300 hover:scale-[1.02] cursor-pointer"
+          >
+            <Trash2 className="size-4" />
+            Restart Sandbox
+          </button>
+          <button
+            type="button"
+            onClick={onImprove}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-amber-500 hover:bg-amber-400 px-8 text-sm font-bold text-[#090a10] shadow-[0_12px_40px_rgba(245,158,11,0.25)] transition duration-300 hover:scale-[1.02] cursor-pointer"
+          >
+            Improve your CV
+            <ArrowRight className="size-4" />
+          </button>
         </div>
       </div>
     </div>
@@ -861,3 +1065,362 @@ function KeywordsPanel() {
     </section>
   );
 }
+
+function TemplateSelectionView({
+  onSelectTemplate,
+}: {
+  onSelectTemplate: (key: "linea" | "marco" | "pulso" | "filo") => void;
+}) {
+  const templatesData: ReadonlyArray<{
+    readonly id: "linea" | "marco" | "pulso" | "filo";
+    readonly name: string;
+    readonly description: string;
+    readonly tag: string;
+    readonly badgeColor: string;
+    readonly recommended?: boolean;
+    readonly previewLines: ReadonlyArray<string>;
+  }> = [
+    {
+      id: "linea",
+      name: "Linea",
+      description: "Compact, precise, and highly ATS-friendly. Built for classic technical profiling.",
+      tag: "Minimalist",
+      badgeColor: "bg-slate-500/10 text-slate-300 border-slate-500/20",
+      previewLines: [
+        "------------------------------------",
+        "JONATHAN DE LA SEN · SOFTWARE ENGINEER",
+        "------------------------------------",
+        "■ About  ■ Experience  ■ Skills",
+      ]
+    },
+    {
+      id: "marco",
+      name: "Marco",
+      description: "Classic, editorial, and elegant. Features traditional serif typography and margins.",
+      tag: "Traditional",
+      badgeColor: "bg-amber-500/10 text-amber-300 border-amber-500/20",
+      previewLines: [
+        "====================================",
+        "      JONATHAN DE LA SEN",
+        "       Software Engineer",
+        "====================================",
+      ]
+    },
+    {
+      id: "pulso",
+      name: "Pulso",
+      description: "Modern, energetic, and visually alive. Recommended for technology and startup roles.",
+      tag: "Protagonist",
+      recommended: true,
+      badgeColor: "bg-emerald-500/10 text-emerald-300 border-emerald-500/20",
+      previewLines: [
+        "◆ JONATHAN DE LA SEN",
+        "  Senior Software Engineer",
+        "  --------------------------------",
+        "  ● Node.js  ● React  ● TypeScript",
+      ]
+    },
+    {
+      id: "filo",
+      name: "Filo",
+      description: "Sharp, structured, and decisive. Accented with left border layouts and modern font hierarchy.",
+      tag: "Executive",
+      badgeColor: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
+      previewLines: [
+        "| JONATHAN DE LA SEN",
+        "| Senior Software Engineer",
+        "| About Me",
+        "| Work Experience",
+      ]
+    },
+  ] as const;
+
+  return (
+    <div className="w-full py-6 select-none">
+      <div className="text-center max-w-2xl mx-auto mb-10">
+        <h3 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
+          Select a layout template
+        </h3>
+        <p className="mt-3 text-base text-white/60">
+          Choose a style to preview your analyzed data. You can refine and customize the sections in the next step.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        {templatesData.map((tpl) => (
+          <motion.button
+            key={tpl.id}
+            whileHover={{ y: -6, scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            onClick={() => onSelectTemplate(tpl.id)}
+            className={`relative flex flex-col text-left rounded-3xl border p-6 bg-gradient-to-b from-[#11131b]/90 to-[#0b0c10]/95 hover:border-violet-500/30 transition-all duration-300 group cursor-pointer shadow-xl ${
+              tpl.recommended ? "border-emerald-500/30 shadow-[0_12px_30px_rgba(16,185,129,0.05)]" : "border-white/10"
+            }`}
+          >
+            {tpl.recommended && (
+              <span className="absolute -top-3 right-6 rounded-full bg-emerald-500 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-black shadow-lg">
+                Recommended
+              </span>
+            )}
+            
+            <div className="flex items-center justify-between mb-4">
+              <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tpl.badgeColor}`}>
+                {tpl.tag}
+              </span>
+            </div>
+
+            <h4 className="text-xl font-bold text-white group-hover:text-violet-400 transition-colors duration-300">
+              {tpl.name}
+            </h4>
+            <p className="mt-2 text-xs text-white/54 leading-relaxed flex-1">
+              {tpl.description}
+            </p>
+
+            {/* Fila del mini bosquejo visual del template */}
+            <div className="mt-6 p-4 rounded-xl bg-black/40 border border-white/5 font-mono text-[9px] text-white/30 space-y-1 select-none pointer-events-none">
+              {tpl.previewLines.map((line, i) => (
+                <div key={i} className="truncate">{line}</div>
+              ))}
+            </div>
+
+            <div className="mt-6 inline-flex h-10 w-full items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white group-hover:bg-violet-600 group-hover:border-violet-500 transition duration-300">
+              Use Template
+            </div>
+          </motion.button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TemplateStudioView({
+  template,
+  onChangeTemplate,
+  accentColor,
+  setAccentColor,
+  skillsPosition,
+  setSkillsPosition,
+  isSummaryCondensed,
+  setIsSummaryCondensed,
+}: {
+  template: "linea" | "marco" | "pulso" | "filo";
+  onChangeTemplate: () => void;
+  accentColor: "default" | "cool";
+  setAccentColor: (c: "default" | "cool") => void;
+  skillsPosition: "bottom" | "top";
+  setSkillsPosition: (p: "bottom" | "top") => void;
+  isSummaryCondensed: boolean;
+  setIsSummaryCondensed: (b: boolean) => void;
+}) {
+  const [messages, setMessages] = useState<Array<{ sender: "ai" | "user"; text: string }>>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMessages([
+      {
+        sender: "ai",
+        text: `Welcome to the Template Studio! I've loaded your data into the "${template.toUpperCase()}" template. How would you like to refine your CV? You can click one of the suggested actions below.`
+      }
+    ]);
+  }, [template]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const isColorApplied = accentColor === "cool";
+  const isSkillsApplied = skillsPosition === "top";
+  const isSummaryApplied = isSummaryCondensed;
+
+  const handlePillClick = (type: "color" | "skills" | "summary") => {
+    if (isTyping) return;
+    
+    let userText = "";
+    if (type === "color") {
+      userText = "🎨 Change colors to a cooler blue/purple tone.";
+    } else if (type === "skills") {
+      userText = "🔄 Move Skills section above Work Experience.";
+    } else if (type === "summary") {
+      userText = "✍️ Condense the professional summary paragraph.";
+    }
+
+    setMessages((prev) => [...prev, { sender: "user", text: userText }]);
+    setIsTyping(true);
+
+    setTimeout(() => {
+      let aiText = "";
+      if (type === "color") {
+        setAccentColor("cool");
+        aiText = "Theme colors updated successfully! The template has been set to the cooler blue/purple palette.";
+      } else if (type === "skills") {
+        setSkillsPosition("top");
+        aiText = "Technical Skills section repositioned! It is now loaded at the top to highlight core competencies.";
+      } else if (type === "summary") {
+        setIsSummaryCondensed(true);
+        aiText = "Summary condensed! Your professional profile bio is now brief, direct, and results-oriented.";
+      }
+
+      setMessages((prev) => [...prev, { sender: "ai", text: aiText }]);
+      setIsTyping(false);
+    }, 1200);
+  };
+
+  return (
+    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-4 select-none">
+      
+      {/* Columna Izquierda: Chatbot Editor */}
+      <div className="lg:col-span-5 flex flex-col h-[640px] rounded-3xl border border-white/10 bg-[#0c0d12]/80 backdrop-blur-md shadow-2xl overflow-hidden relative">
+        
+        {/* Cabecera del chat */}
+        <div className="p-5 border-b border-white/8 bg-white/[0.02] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="size-3.5 rounded-full bg-violet-50 animate-pulse" />
+            <div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">AI Assistant</h4>
+              <p className="text-[10px] text-white/42 font-medium">CV Tailoring Sandbox</p>
+            </div>
+          </div>
+          <button 
+            onClick={onChangeTemplate}
+            className="text-[11px] font-bold text-violet-400 hover:text-violet-300 border border-violet-500/20 bg-violet-500/5 px-3 py-1.5 rounded-full transition duration-300 cursor-pointer"
+          >
+            Change Template
+          </button>
+        </div>
+
+        {/* Historial de mensajes */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {messages.map((msg, idx) => (
+            <div 
+              key={idx} 
+              className={`flex w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div 
+                className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed ${
+                  msg.sender === "user" 
+                    ? "bg-violet-600 text-white rounded-br-none" 
+                    : "bg-white/[0.04] border border-white/5 text-white/80 rounded-bl-none"
+                }`}
+              >
+                {msg.text}
+              </div>
+            </div>
+          ))}
+
+          {/* Indicador de escritura */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="bg-white/[0.04] border border-white/5 rounded-2xl rounded-bl-none p-4 flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "100ms" }} />
+                <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "200ms" }} />
+                <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Entrada y píldoras rápidas */}
+        <div className="p-5 border-t border-white/8 bg-white/[0.01] space-y-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Suggested Adjustments</p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                disabled={isColorApplied || isTyping}
+                onClick={() => handlePillClick("color")}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 ${
+                  isColorApplied
+                    ? "bg-emerald-500/12 border border-emerald-500/20 text-emerald-400 opacity-60 cursor-not-allowed"
+                    : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white cursor-pointer"
+                }`}
+              >
+                {isColorApplied ? "✓ Theme Updated" : "🎨 Change Colors"}
+              </button>
+              
+              <button
+                disabled={isSkillsApplied || isTyping}
+                onClick={() => handlePillClick("skills")}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 ${
+                  isSkillsApplied
+                    ? "bg-emerald-500/12 border border-emerald-500/20 text-emerald-400 opacity-60 cursor-not-allowed"
+                    : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white cursor-pointer"
+                }`}
+              >
+                {isSkillsApplied ? "✓ Skills Moved to Top" : "🔄 Move Skills to Top"}
+              </button>
+
+              <button
+                disabled={isSummaryApplied || isTyping}
+                onClick={() => handlePillClick("summary")}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 ${
+                  isSummaryApplied
+                    ? "bg-emerald-500/12 border border-emerald-500/20 text-emerald-400 opacity-60 cursor-not-allowed"
+                    : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white cursor-pointer"
+                }`}
+              >
+                {isSummaryApplied ? "✓ Summary Condensed" : "✍️ Condense Summary"}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-full bg-white/[0.03] border border-white/8 p-1">
+            <input 
+              type="text" 
+              readOnly
+              placeholder="Select an adjustment pill above to command the AI..." 
+              className="flex-1 px-4 text-xs text-white/30 bg-transparent border-0 outline-none select-none cursor-default"
+            />
+            <button 
+              disabled 
+              className="size-8 rounded-full bg-violet-600/30 flex items-center justify-center text-white/40 cursor-not-allowed"
+            >
+              <ArrowRight className="size-4" />
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Columna Derecha: Previsualización de CV adaptable */}
+      <div className="lg:col-span-7 flex flex-col items-center w-full">
+        <div className="w-full max-w-[680px] mb-4 flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <p className="text-sm font-semibold text-white">Interactive CV Template Studio</p>
+            <p className="text-xs text-white/42">Editing in {template.toUpperCase()} Mode</p>
+          </div>
+          <div className="flex gap-2">
+            {accentColor === "cool" && (
+              <span className="rounded-full bg-indigo-500/12 border border-indigo-500/20 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 animate-fade-in">
+                Cool Palette
+              </span>
+            )}
+            {skillsPosition === "top" && (
+              <span className="rounded-full bg-amber-500/12 border border-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-300 animate-fade-in">
+                Skills at Top
+              </span>
+            )}
+            {isSummaryCondensed && (
+              <span className="rounded-full bg-emerald-500/12 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 animate-fade-in">
+                Condensed Summary
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <div className="w-full max-w-[680px] rounded-2xl border border-white/10 shadow-[0_24px_60px_rgba(0,0,0,0.5)] overflow-hidden">
+          <RealCVPreview 
+            template={template}
+            accentColor={accentColor}
+            skillsPosition={skillsPosition}
+            isSummaryCondensed={isSummaryCondensed}
+            small={false}
+          />
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
