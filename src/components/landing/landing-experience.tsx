@@ -191,6 +191,20 @@ const APP_FEATURES: AppFeature[] = [
   },
 ];
 
+interface PhysicsBubble {
+  id: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  width: number;
+  height: number;
+  targetSpeed: number;
+  initialX: number;
+  initialY: number;
+  featureIndex: number;
+}
+
 const featureColorMap: Record<string, { bg: string; text: string; border: string; glow: string }> = {
   emerald: {
     bg: "bg-emerald-500/10 hover:bg-emerald-500/15",
@@ -235,6 +249,265 @@ export function LandingExperience() {
   const [selectedFeature, setSelectedFeature] = useState<AppFeature | null>(null);
   const flowRef = useRef<HTMLElement | null>(null);
   const isScrollingRef = useRef(false);
+
+  const heroRef = useRef<HTMLElement | null>(null);
+  const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const hoveredRef = useRef<string | null>(null);
+  const bubblesRef = useRef<PhysicsBubble[]>([]);
+  const containerWidthRef = useRef<number>(0);
+  const containerHeightRef = useRef<number>(0);
+  const requestRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Only run physics simulation on screen widths >= 1024 (desktop)
+    if (typeof window === "undefined") return;
+
+    const initPhysics = () => {
+      if (!heroRef.current) return;
+      const rect = heroRef.current.getBoundingClientRect();
+      const containerW = rect.width;
+      const containerH = rect.height;
+
+      containerWidthRef.current = containerW;
+      containerHeightRef.current = containerH;
+
+      // Initialize bubble structures
+      const newBubbles: PhysicsBubble[] = APP_FEATURES.map((feature, index) => {
+        const initialX = containerW * (parseFloat(feature.left) / 100);
+        const initialY = containerH * (parseFloat(feature.top) / 100);
+
+        // Measure card dimensions or fall back to default values
+        let w = 230;
+        let h = 68;
+        const el = cardRefs.current[index];
+        if (el) {
+          const cardRect = el.getBoundingClientRect();
+          w = cardRect.width || 230;
+          h = cardRect.height || 68;
+        }
+
+        // Assign random starting velocity direction, magnitude targetSpeed
+        const targetSpeed = 1.8 + Math.random() * 1.8; // even faster organic drift
+        const angle = Math.random() * Math.PI * 2;
+
+        return {
+          id: feature.id,
+          x: initialX,
+          y: initialY,
+          vx: Math.cos(angle) * targetSpeed,
+          vy: Math.sin(angle) * targetSpeed,
+          width: w,
+          height: h,
+          targetSpeed,
+          initialX,
+          initialY,
+          featureIndex: index,
+        };
+      });
+
+      bubblesRef.current = newBubbles;
+    };
+
+    initPhysics();
+
+    // Resize handler
+    const handleResize = () => {
+      if (!heroRef.current) return;
+      const rect = heroRef.current.getBoundingClientRect();
+      const oldW = containerWidthRef.current;
+      const oldH = containerHeightRef.current;
+      const newW = rect.width;
+      const newH = rect.height;
+
+      containerWidthRef.current = newW;
+      containerHeightRef.current = newH;
+
+      if (bubblesRef.current.length === 0) {
+        initPhysics();
+        return;
+      }
+
+      bubblesRef.current.forEach((bubble) => {
+        const feature = APP_FEATURES[bubble.featureIndex];
+        bubble.initialX = newW * (parseFloat(feature.left) / 100);
+        bubble.initialY = newH * (parseFloat(feature.top) / 100);
+
+        if (oldW > 0 && oldH > 0) {
+          bubble.x = (bubble.x / oldW) * newW;
+          bubble.y = (bubble.y / oldH) * newH;
+        } else {
+          bubble.x = bubble.initialX;
+          bubble.y = bubble.initialY;
+        }
+
+        const el = cardRefs.current[bubble.featureIndex];
+        if (el) {
+          const cardRect = el.getBoundingClientRect();
+          bubble.width = cardRect.width || 230;
+          bubble.height = cardRect.height || 68;
+        }
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Animation frame update
+    const updatePhysics = () => {
+      if (window.innerWidth < 1024) {
+        requestRef.current = requestAnimationFrame(updatePhysics);
+        return;
+      }
+
+      const containerW = containerWidthRef.current;
+      const containerH = containerHeightRef.current;
+      if (containerW === 0 || containerH === 0) {
+        requestRef.current = requestAnimationFrame(updatePhysics);
+        return;
+      }
+
+      const bubbles = bubblesRef.current;
+      const numBubbles = bubbles.length;
+
+      // 1. Position and boundary updates
+      for (let i = 0; i < numBubbles; i++) {
+        const bubble = bubbles[i];
+        const isHovered = hoveredRef.current === bubble.id;
+
+        if (isHovered) {
+          bubble.vx = 0;
+          bubble.vy = 0;
+          continue;
+        }
+
+        // Speed regulation
+        let speed = Math.sqrt(bubble.vx * bubble.vx + bubble.vy * bubble.vy);
+        if (speed === 0) {
+          const angle = Math.random() * Math.PI * 2;
+          bubble.vx = Math.cos(angle) * bubble.targetSpeed;
+          bubble.vy = Math.sin(angle) * bubble.targetSpeed;
+          speed = bubble.targetSpeed;
+        }
+
+        const target = bubble.targetSpeed;
+        const factor = 0.05;
+        bubble.vx += (bubble.vx / speed) * (target - speed) * factor;
+        bubble.vy += (bubble.vy / speed) * (target - speed) * factor;
+
+        bubble.x += bubble.vx;
+        bubble.y += bubble.vy;
+
+        // Boundary check (keep on screen)
+        const pad = 12;
+        if (bubble.x < pad) {
+          bubble.x = pad;
+          bubble.vx = Math.abs(bubble.vx);
+        } else if (bubble.x + bubble.width > containerW - pad) {
+          bubble.x = containerW - pad - bubble.width;
+          bubble.vx = -Math.abs(bubble.vx);
+        }
+
+        if (bubble.y < pad) {
+          bubble.y = pad;
+          bubble.vy = Math.abs(bubble.vy);
+        } else if (bubble.y + bubble.height > containerH - pad) {
+          bubble.y = containerH - pad - bubble.height;
+          bubble.vy = -Math.abs(bubble.vy);
+        }
+      }
+
+      // 2. Pairwise rectangle collisions (Elastic Collisions)
+      for (let i = 0; i < numBubbles; i++) {
+        for (let j = i + 1; j < numBubbles; j++) {
+          const b1 = bubbles[i];
+          const b2 = bubbles[j];
+
+          const isHovered1 = hoveredRef.current === b1.id;
+          const isHovered2 = hoveredRef.current === b2.id;
+
+          const cx1 = b1.x + b1.width / 2;
+          const cy1 = b1.y + b1.height / 2;
+          const cx2 = b2.x + b2.width / 2;
+          const cy2 = b2.y + b2.height / 2;
+
+          const hw1 = b1.width / 2;
+          const hh1 = b1.height / 2;
+          const hw2 = b2.width / 2;
+          const hh2 = b2.height / 2;
+
+          const overlapX = (hw1 + hw2) - Math.abs(cx1 - cx2);
+          const overlapY = (hh1 + hh2) - Math.abs(cy1 - cy2);
+
+          if (overlapX > 0 && overlapY > 0) {
+            // Bounce along the direction of least overlap
+            if (overlapX < overlapY) {
+              const dirX = Math.sign(cx2 - cx1) || 1;
+
+              if (isHovered1 && !isHovered2) {
+                b2.x += overlapX * dirX;
+                b2.vx = Math.abs(b2.vx) * dirX;
+              } else if (!isHovered1 && isHovered2) {
+                b1.x -= overlapX * dirX;
+                b1.vx = -Math.abs(b1.vx) * dirX;
+              } else if (!isHovered1 && !isHovered2) {
+                // Shift both
+                b1.x -= overlapX * 0.5 * dirX;
+                b2.x += overlapX * 0.5 * dirX;
+                // Swap velocities
+                const temp = b1.vx;
+                b1.vx = b2.vx;
+                b2.vx = temp;
+              }
+            } else {
+              const dirY = Math.sign(cy2 - cy1) || 1;
+
+              if (isHovered1 && !isHovered2) {
+                b2.y += overlapY * dirY;
+                b2.vy = Math.abs(b2.vy) * dirY;
+              } else if (!isHovered1 && isHovered2) {
+                b1.y -= overlapY * dirY;
+                b1.vy = -Math.abs(b1.vy) * dirY;
+              } else if (!isHovered1 && !isHovered2) {
+                // Shift both
+                b1.y -= overlapY * 0.5 * dirY;
+                b2.y += overlapY * 0.5 * dirY;
+                // Swap velocities
+                const temp = b1.vy;
+                b1.vy = b2.vy;
+                b2.vy = temp;
+              }
+            }
+          }
+        }
+      }
+
+      // 3. Mutate DOM styles directly for high performance
+      for (let i = 0; i < numBubbles; i++) {
+        const bubble = bubbles[i];
+        const el = cardRefs.current[bubble.featureIndex];
+        if (el) {
+          const offsetX = bubble.x - bubble.initialX;
+          const offsetY = bubble.y - bubble.initialY;
+          el.style.transform = `translate3d(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px, 0px)`;
+        }
+      }
+
+      requestRef.current = requestAnimationFrame(updatePhysics);
+    };
+
+    // Wait a brief moment to make sure elements are rendered and have dimensions
+    const timer = setTimeout(() => {
+      initPhysics();
+      requestRef.current = requestAnimationFrame(updatePhysics);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -410,113 +683,105 @@ export function LandingExperience() {
     <main className="relative isolate min-h-screen overflow-hidden">
       <div className="noise" />
 
-      <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top">
+      <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef as any}>
         <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
-        <div className="w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
-            <motion.div
-              initial={{ opacity: 0, y: 22 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75, ease: "easeOut" }}
-              className="lg:col-span-7 w-full text-left"
-            >
-              <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl">
-                FABRA
-              </p>
-              <h1 className="text-balance text-5xl font-semibold leading-[0.95] text-white sm:text-7xl lg:text-8xl">
-                Craft your career, your way.
-              </h1>
-              <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68">
-                Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
-              </p>
-              <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center">
-                {/* Interactive Demo Glowing Button */}
-                <button
-                  type="button"
-                  onClick={scrollToFlow}
-                  className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
-                >
-                  <Sparkles className="size-5 text-violet-200 animate-pulse" />
-                  <span>Try the Interactive Demo</span>
-                  <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
-                </button>
 
-                <a
-                  href={appUrl}
-                  className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
-                >
-                  Start crafting with Fabra
-                </a>
-              </div>
-             </motion.div>
-
-            {/* Floating features canvas (Desktop only) */}
-            <div className="lg:col-span-5 hidden lg:block relative min-h-[640px] w-full select-none">
-              {APP_FEATURES.map((feature, index) => {
-                const styles = featureColorMap[feature.color];
-                return (
-                  <motion.button
-                    key={feature.id}
-                    custom={index}
-                    animate={{
-                      y: [0, -14, 0],
-                      x: [0, index % 2 === 0 ? 8 : -8, 0],
-                    }}
-                    transition={{
-                      duration: 6 + index * 1.2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                    whileHover={{
-                      scale: 1.05,
-                      y: -4,
-                      zIndex: 30,
-                    }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setSelectedFeature(feature)}
-                    className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 select-none z-10 w-[230px]`}
-                    style={{ top: feature.top, left: feature.left }}
-                  >
-                    <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
-                      <feature.icon className="size-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white tracking-wide">{feature.title}</h3>
-                      <p className="text-[11px] text-white/50 leading-tight mt-0.5">{feature.teaser}</p>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Mobile feature cards (Mobile/Tablet only) */}
-            <div className="lg:hidden w-full mt-12 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="col-span-1 sm:col-span-2 mb-2">
-                <span className="text-xs font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
-                  Core Features
-                </span>
-                <h2 className="text-xl font-bold text-white mt-1">Explore real capabilities</h2>
-              </div>
-              {APP_FEATURES.map((feature) => {
-                const styles = featureColorMap[feature.color];
-                return (
-                  <button
-                    key={feature.id}
-                    onClick={() => setSelectedFeature(feature)}
-                    className={`p-4 rounded-2xl glass flex items-center gap-4 text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all w-full`}
-                  >
-                    <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
-                      <feature.icon className="size-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white">{feature.title}</h3>
-                      <p className="text-[11px] text-white/50 mt-0.5">{feature.teaser}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+        <div className="w-full pointer-events-none flex flex-col items-center justify-center text-center">
+          
+          {/* Title Header (Goes in front of cards: z-30) */}
+          <div className="relative z-30 pointer-events-auto">
+            <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl select-none">
+              FABRA
+            </p>
           </div>
+
+          {/* Subtitle & Actions (Goes behind cards: z-10) */}
+          <motion.div
+            initial={{ opacity: 0, y: 22 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, ease: "easeOut" }}
+            className="w-full text-center flex flex-col items-center justify-center pointer-events-auto relative z-10"
+          >
+            <h1 className="text-balance text-5xl font-semibold leading-[0.95] text-white sm:text-7xl lg:text-8xl">
+              Craft your career, your way.
+            </h1>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68 mx-auto">
+              Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
+            </p>
+            <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center justify-center w-full">
+              {/* Interactive Demo Glowing Button */}
+              <button
+                type="button"
+                onClick={scrollToFlow}
+                className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
+              >
+                <Sparkles className="size-5 text-violet-200 animate-pulse" />
+                <span>Try the Interactive Demo</span>
+                <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
+              </button>
+
+              <a
+                href={appUrl}
+                className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-full border border-white/15 px-8 text-base font-semibold text-white/82 transition hover:border-white/30 hover:bg-white/8 select-none"
+              >
+                Start crafting with Fabra
+              </a>
+            </div>
+           </motion.div>
+
+          {/* Mobile feature cards (Mobile/Tablet only) */}
+          <div className="lg:hidden w-full mt-16 grid grid-cols-1 sm:grid-cols-2 gap-4 pointer-events-auto text-left">
+            <div className="col-span-1 sm:col-span-2 mb-2">
+              <span className="text-xs font-black uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400">
+                Core Features
+              </span>
+              <h2 className="text-xl font-bold text-white mt-1">Explore real capabilities</h2>
+            </div>
+            {APP_FEATURES.map((feature) => {
+              const styles = featureColorMap[feature.color];
+              return (
+                <button
+                  key={feature.id}
+                  onClick={() => setSelectedFeature(feature)}
+                  className={`p-4 rounded-2xl glass flex items-center gap-4 text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all w-full`}
+                >
+                  <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
+                    <feature.icon className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">{feature.title}</h3>
+                    <p className="text-[11px] text-white/50 mt-0.5">{feature.teaser}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Floating Cards (Desktop only - Behind title "FABRA" but in front of rest of content) */}
+        <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none hidden lg:block select-none">
+          {APP_FEATURES.map((feature, index) => {
+            const styles = featureColorMap[feature.color];
+            return (
+              <button
+                key={feature.id}
+                ref={(el) => { cardRefs.current[index] = el; }}
+                onMouseEnter={() => { hoveredRef.current = feature.id; }}
+                onMouseLeave={() => { hoveredRef.current = null; }}
+                onClick={() => setSelectedFeature(feature)}
+                className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-all duration-300 pointer-events-auto w-[230px] scale-100 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] z-[20]`}
+                style={{ top: feature.top, left: feature.left }}
+              >
+                <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
+                  <feature.icon className="size-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white tracking-wide">{feature.title}</h3>
+                  <p className="text-[11px] text-white/50 leading-tight mt-0.5">{feature.teaser}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
