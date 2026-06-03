@@ -197,180 +197,184 @@ export function LandingExperience() {
 
     // Animation frame update
     const updatePhysics = () => {
-      if (window.innerWidth < 1024) {
-        requestRef.current = requestAnimationFrame(updatePhysics);
-        return;
-      }
-
+      const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
       const containerW = containerWidthRef.current;
       const containerH = containerHeightRef.current;
-      if (containerW === 0 || containerH === 0) {
-        requestRef.current = requestAnimationFrame(updatePhysics);
-        return;
-      }
 
-      const bubbles = bubblesRef.current;
-      const numBubbles = bubbles.length;
+      // Only run physics calculations if not mobile and container dimensions are valid
+      if (!isMobile && containerW > 0 && containerH > 0) {
+        const bubbles = bubblesRef.current;
+        const numBubbles = bubbles.length;
 
-      // 1. Position and boundary updates
-      for (let i = 0; i < numBubbles; i++) {
-        const bubble = bubbles[i];
-        const isHovered = hoveredRef.current === bubble.id;
+        // 1. Position and boundary updates
+        for (let i = 0; i < numBubbles; i++) {
+          const bubble = bubbles[i];
+          const isHovered = hoveredRef.current === bubble.id;
 
-        if (isHovered) {
-          bubble.vx = 0;
-          bubble.vy = 0;
-          continue;
+          if (isHovered) {
+            bubble.vx = 0;
+            bubble.vy = 0;
+            continue;
+          }
+
+          // Speed regulation
+          let speed = Math.sqrt(bubble.vx * bubble.vx + bubble.vy * bubble.vy);
+          if (speed === 0) {
+            const angle = Math.random() * Math.PI * 2;
+            bubble.vx = Math.cos(angle) * bubble.targetSpeed;
+            bubble.vy = Math.sin(angle) * bubble.targetSpeed;
+            speed = bubble.targetSpeed;
+          }
+
+          const target = bubble.targetSpeed;
+          const factor = 0.05;
+          bubble.vx += (bubble.vx / speed) * (target - speed) * factor;
+          bubble.vy += (bubble.vy / speed) * (target - speed) * factor;
+
+          bubble.x += bubble.vx;
+          bubble.y += bubble.vy;
+
+          // Boundary check (keep on screen)
+          const pad = 12;
+          if (bubble.x < pad) {
+            bubble.x = pad;
+            bubble.vx = Math.abs(bubble.vx);
+          } else if (bubble.x + bubble.width > containerW - pad) {
+            bubble.x = containerW - pad - bubble.width;
+            bubble.vx = -Math.abs(bubble.vx);
+          }
+
+          if (bubble.y < pad) {
+            bubble.y = pad;
+            bubble.vy = Math.abs(bubble.vy);
+          } else if (bubble.y + bubble.height > containerH - pad) {
+            bubble.y = containerH - pad - bubble.height;
+            bubble.vy = -Math.abs(bubble.vy);
+          }
         }
 
-        // Speed regulation
-        let speed = Math.sqrt(bubble.vx * bubble.vx + bubble.vy * bubble.vy);
-        if (speed === 0) {
-          const angle = Math.random() * Math.PI * 2;
-          bubble.vx = Math.cos(angle) * bubble.targetSpeed;
-          bubble.vy = Math.sin(angle) * bubble.targetSpeed;
-          speed = bubble.targetSpeed;
-        }
+        // 2. Pairwise rectangle collisions
+        const collisionGap = 10;
+        const bounceDamping = 0.92;
 
-        const target = bubble.targetSpeed;
-        const factor = 0.05;
-        bubble.vx += (bubble.vx / speed) * (target - speed) * factor;
-        bubble.vy += (bubble.vy / speed) * (target - speed) * factor;
+        for (let i = 0; i < numBubbles; i++) {
+          for (let j = i + 1; j < numBubbles; j++) {
+            const b1 = bubbles[i];
+            const b2 = bubbles[j];
 
-        bubble.x += bubble.vx;
-        bubble.y += bubble.vy;
+            const isHovered1 = hoveredRef.current === b1.id;
+            const isHovered2 = hoveredRef.current === b2.id;
 
-        // Boundary check (keep on screen)
-        const pad = 12;
-        if (bubble.x < pad) {
-          bubble.x = pad;
-          bubble.vx = Math.abs(bubble.vx);
-        } else if (bubble.x + bubble.width > containerW - pad) {
-          bubble.x = containerW - pad - bubble.width;
-          bubble.vx = -Math.abs(bubble.vx);
-        }
+            const cx1 = b1.x + b1.width / 2;
+            const cy1 = b1.y + b1.height / 2;
+            const cx2 = b2.x + b2.width / 2;
+            const cy2 = b2.y + b2.height / 2;
 
-        if (bubble.y < pad) {
-          bubble.y = pad;
-          bubble.vy = Math.abs(bubble.vy);
-        } else if (bubble.y + bubble.height > containerH - pad) {
-          bubble.y = containerH - pad - bubble.height;
-          bubble.vy = -Math.abs(bubble.vy);
-        }
-      }
+            const hw1 = b1.width / 2 + collisionGap;
+            const hh1 = b1.height / 2 + collisionGap;
+            const hw2 = b2.width / 2 + collisionGap;
+            const hh2 = b2.height / 2 + collisionGap;
 
-      // 2. Pairwise rectangle collisions
-      const collisionGap = 10;
-      const bounceDamping = 0.92;
+            const overlapX = (hw1 + hw2) - Math.abs(cx1 - cx2);
+            const overlapY = (hh1 + hh2) - Math.abs(cy1 - cy2);
 
-      for (let i = 0; i < numBubbles; i++) {
-        for (let j = i + 1; j < numBubbles; j++) {
-          const b1 = bubbles[i];
-          const b2 = bubbles[j];
+            if (overlapX > 0 && overlapY > 0) {
+              if (overlapX < overlapY) {
+                const dirX = Math.sign(cx2 - cx1) || 1;
+                const b1Speed = Math.max(Math.abs(b1.vx), b1.targetSpeed * 0.75);
+                const b2Speed = Math.max(Math.abs(b2.vx), b2.targetSpeed * 0.75);
 
-          const isHovered1 = hoveredRef.current === b1.id;
-          const isHovered2 = hoveredRef.current === b2.id;
+                if (isHovered1 && !isHovered2) {
+                  b2.x += overlapX * dirX;
+                  b2.vx = b2Speed * dirX * bounceDamping;
+                } else if (!isHovered1 && isHovered2) {
+                  b1.x -= overlapX * dirX;
+                  b1.vx = -b1Speed * dirX * bounceDamping;
+                } else if (!isHovered1 && !isHovered2) {
+                  b1.x -= overlapX * 0.5 * dirX;
+                  b2.x += overlapX * 0.5 * dirX;
+                  b1.vx = -b1Speed * dirX * bounceDamping;
+                  b2.vx = b2Speed * dirX * bounceDamping;
+                }
+              } else {
+                const dirY = Math.sign(cy2 - cy1) || 1;
+                const b1Speed = Math.max(Math.abs(b1.vy), b1.targetSpeed * 0.75);
+                const b2Speed = Math.max(Math.abs(b2.vy), b2.targetSpeed * 0.75);
 
-          const cx1 = b1.x + b1.width / 2;
-          const cy1 = b1.y + b1.height / 2;
-          const cx2 = b2.x + b2.width / 2;
-          const cy2 = b2.y + b2.height / 2;
-
-          const hw1 = b1.width / 2 + collisionGap;
-          const hh1 = b1.height / 2 + collisionGap;
-          const hw2 = b2.width / 2 + collisionGap;
-          const hh2 = b2.height / 2 + collisionGap;
-
-          const overlapX = (hw1 + hw2) - Math.abs(cx1 - cx2);
-          const overlapY = (hh1 + hh2) - Math.abs(cy1 - cy2);
-
-          if (overlapX > 0 && overlapY > 0) {
-            if (overlapX < overlapY) {
-              const dirX = Math.sign(cx2 - cx1) || 1;
-              const b1Speed = Math.max(Math.abs(b1.vx), b1.targetSpeed * 0.75);
-              const b2Speed = Math.max(Math.abs(b2.vx), b2.targetSpeed * 0.75);
-
-              if (isHovered1 && !isHovered2) {
-                b2.x += overlapX * dirX;
-                b2.vx = b2Speed * dirX * bounceDamping;
-              } else if (!isHovered1 && isHovered2) {
-                b1.x -= overlapX * dirX;
-                b1.vx = -b1Speed * dirX * bounceDamping;
-              } else if (!isHovered1 && !isHovered2) {
-                b1.x -= overlapX * 0.5 * dirX;
-                b2.x += overlapX * 0.5 * dirX;
-                b1.vx = -b1Speed * dirX * bounceDamping;
-                b2.vx = b2Speed * dirX * bounceDamping;
-              }
-            } else {
-              const dirY = Math.sign(cy2 - cy1) || 1;
-              const b1Speed = Math.max(Math.abs(b1.vy), b1.targetSpeed * 0.75);
-              const b2Speed = Math.max(Math.abs(b2.vy), b2.targetSpeed * 0.75);
-
-              if (isHovered1 && !isHovered2) {
-                b2.y += overlapY * dirY;
-                b2.vy = b2Speed * dirY * bounceDamping;
-              } else if (!isHovered1 && isHovered2) {
-                b1.y -= overlapY * dirY;
-                b1.vy = -b1Speed * dirY * bounceDamping;
-              } else if (!isHovered1 && !isHovered2) {
-                b1.y -= overlapY * 0.5 * dirY;
-                b2.y += overlapY * 0.5 * dirY;
-                b1.vy = -b1Speed * dirY * bounceDamping;
-                b2.vy = b2Speed * dirY * bounceDamping;
+                if (isHovered1 && !isHovered2) {
+                  b2.y += overlapY * dirY;
+                  b2.vy = b2Speed * dirY * bounceDamping;
+                } else if (!isHovered1 && isHovered2) {
+                  b1.y -= overlapY * dirY;
+                  b1.vy = -b1Speed * dirY * bounceDamping;
+                } else if (!isHovered1 && !isHovered2) {
+                  b1.y -= overlapY * 0.5 * dirY;
+                  b2.y += overlapY * 0.5 * dirY;
+                  b1.vy = -b1Speed * dirY * bounceDamping;
+                  b2.vy = b2Speed * dirY * bounceDamping;
+                }
               }
             }
           }
         }
-      }
 
-      for (let i = 0; i < numBubbles; i++) {
-        const bubble = bubbles[i];
-        const pad = 12;
-        bubble.x = Math.min(Math.max(bubble.x, pad), containerW - pad - bubble.width);
-        bubble.y = Math.min(Math.max(bubble.y, pad), containerH - pad - bubble.height);
-      }
+        // Clamp inside boundary
+        for (let i = 0; i < numBubbles; i++) {
+          const bubble = bubbles[i];
+          const pad = 12;
+          bubble.x = Math.min(Math.max(bubble.x, pad), containerW - pad - bubble.width);
+          bubble.y = Math.min(Math.max(bubble.y, pad), containerH - pad - bubble.height);
+        }
 
-      // 3. Mutate DOM styles directly for high performance (handling hover scale dynamically)
-      for (let i = 0; i < numBubbles; i++) {
-        const bubble = bubbles[i];
-        const el = cardRefs.current[bubble.featureIndex];
-        if (el) {
-          const offsetX = bubble.x - bubble.initialX;
-          const offsetY = bubble.y - bubble.initialY;
-          const isHovered = hoveredRef.current === bubble.id;
-          const scale = isHovered ? " scale(1.05)" : " scale(1)";
-          el.style.transform = `translate3d(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px, 0px)${scale}`;
+        // 3. Mutate DOM styles directly for high performance
+        for (let i = 0; i < numBubbles; i++) {
+          const bubble = bubbles[i];
+          const el = cardRefs.current[bubble.featureIndex];
+          if (el) {
+            const offsetX = bubble.x - bubble.initialX;
+            const offsetY = bubble.y - bubble.initialY;
+            const isHovered = hoveredRef.current === bubble.id;
+            const scale = isHovered ? " scale(1.05)" : " scale(1)";
+            el.style.transform = `translate3d(${offsetX.toFixed(1)}px, ${offsetY.toFixed(1)}px, 0px)${scale}`;
+          }
         }
       }
 
+      // Timing values for coordinated idle/mobile wave animations
+      const time = performance.now() * 0.0015;
+      const idlePulse = Math.sin(time) * 0.5 + 0.5; // 0 to 1
+
       // 4. Update letter intersections and styles
       const letterRects = lettersRectRef.current;
+      const numBubbles = bubblesRef.current.length;
+      
       for (let j = 0; j < letterRects.length; j++) {
         const letter = letterRects[j];
         let isIntersecting = false;
 
-        for (let i = 0; i < numBubbles; i++) {
-          const bubble = bubbles[i];
-          
-          // Calculate precise center-based overlapping for responsive feedback
-          const cardCenterX = bubble.x + bubble.width / 2;
-          const cardCenterY = bubble.y + bubble.height / 2;
-          const activeHalfWidth = 40; // 80px total width around the center of the card
-          const activeHalfHeight = bubble.height / 2 + 10; // Vertical coverage
+        // Skip collision checks on mobile
+        if (!isMobile) {
+          for (let i = 0; i < numBubbles; i++) {
+            const bubble = bubblesRef.current[i];
+            const cardCenterX = bubble.x + bubble.width / 2;
+            const cardCenterY = bubble.y + bubble.height / 2;
+            const activeHalfWidth = 40;
+            const activeHalfHeight = bubble.height / 2 + 10;
 
-          if (
-            cardCenterX - activeHalfWidth < letter.x + letter.width &&
-            cardCenterX + activeHalfWidth > letter.x &&
-            cardCenterY - activeHalfHeight < letter.y + letter.height &&
-            cardCenterY + activeHalfHeight > letter.y
-          ) {
-            isIntersecting = true;
-            break;
+            if (
+              cardCenterX - activeHalfWidth < letter.x + letter.width &&
+              cardCenterX + activeHalfWidth > letter.x &&
+              cardCenterY - activeHalfHeight < letter.y + letter.height &&
+              cardCenterY + activeHalfHeight > letter.y
+            ) {
+              isIntersecting = true;
+              break;
+            }
           }
         }
 
         if (isIntersecting) {
+          // Card-driven hover style (Desktop intersection)
           if (letter.element.dataset.active !== "true") {
             const pct = letterRects.length > 1 ? (j / (letterRects.length - 1)) * 100 : 0;
             letter.element.dataset.active = "true";
@@ -383,44 +387,72 @@ export function LandingExperience() {
             letter.element.style.webkitTextFillColor = "transparent";
           }
         } else {
-          if (letter.element.dataset.active === "true") {
+          if (isMobile) {
+            // Coordinated mobile subtle pulse in unison (no wave, static full-color gradient)
             letter.element.dataset.active = "false";
-            letter.element.style.transform = "";
-            letter.element.style.textShadow = "";
-            letter.element.style.backgroundImage = "";
-            letter.element.style.backgroundSize = "";
-            letter.element.style.backgroundPosition = "";
-            letter.element.style.webkitBackgroundClip = "";
-            letter.element.style.backgroundClip = "";
-            letter.element.style.webkitTextFillColor = "";
+            
+            // Smooth continuous breathing pulse in unison
+            const letterPulse = Math.sin(time * 1.5) * 0.5 + 0.5; // 0 to 1 pulse
+            
+            const scale = 1 + letterPulse * 0.04; // subtle scale pulse (max 1.04)
+            const translateY = -letterPulse * 1.8; // subtle translation (max -1.8px)
+            
+            letter.element.style.transform = `scale(${scale.toFixed(3)}) translateY(${translateY.toFixed(1)}px)`;
+            
+            const pct = letterRects.length > 1 ? (j / (letterRects.length - 1)) * 100 : 0;
+            // Static gradient including the cyan/blue (azulito) at the end, without shifting animations
+            letter.element.style.backgroundImage = "linear-gradient(90deg, #7c3aed 0%, #c026d3 50%, #22d3ee 100%)";
+            letter.element.style.backgroundSize = `${letterRects.length * 100}% 100%`;
+            letter.element.style.backgroundPosition = `${pct}% 0`; // static contiguous position
+            letter.element.style.webkitBackgroundClip = "text";
+            letter.element.style.backgroundClip = "text";
+            
+            // Full color gradient (no white mix)
+            letter.element.style.webkitTextFillColor = "transparent";
+          } else {
+            // Restore desktop original static style when not intersecting
+            if (letter.element.dataset.active === "true" || letter.element.style.transform !== "") {
+              letter.element.dataset.active = "false";
+              letter.element.style.transform = "";
+              letter.element.style.textShadow = "";
+              letter.element.style.backgroundImage = "";
+              letter.element.style.backgroundSize = "";
+              letter.element.style.backgroundPosition = "";
+              letter.element.style.webkitBackgroundClip = "";
+              letter.element.style.backgroundClip = "";
+              letter.element.style.webkitTextFillColor = "";
+            }
           }
         }
       }
 
-      // 5. Update logo intersections, dynamic 3D tilt, ribbon blooming and glow effects
+      // 5. Update logo intersections, dynamic 3D tilt, ribbon blooming, and glow effects
       const logoItem = logoRectRef.current;
       if (logoItem) {
         let isIntersecting = false;
         let intersectingBubble = null;
 
-        for (let i = 0; i < numBubbles; i++) {
-          const bubble = bubbles[i];
-          const cardCenterX = bubble.x + bubble.width / 2;
-          const cardCenterY = bubble.y + bubble.height / 2;
+        if (!isMobile) {
+          for (let i = 0; i < numBubbles; i++) {
+            const bubble = bubblesRef.current[i];
+            const cardCenterX = bubble.x + bubble.width / 2;
+            const cardCenterY = bubble.y + bubble.height / 2;
 
-          if (
-            cardCenterX - bubble.width / 2 < logoItem.x + logoItem.width &&
-            cardCenterX + bubble.width / 2 > logoItem.x &&
-            cardCenterY - bubble.height / 2 < logoItem.y + logoItem.height &&
-            cardCenterY + bubble.height / 2 > logoItem.y
-          ) {
-            isIntersecting = true;
-            intersectingBubble = bubble;
-            break;
+            if (
+              cardCenterX - bubble.width / 2 < logoItem.x + logoItem.width &&
+              cardCenterX + bubble.width / 2 > logoItem.x &&
+              cardCenterY - bubble.height / 2 < logoItem.y + logoItem.height &&
+              cardCenterY + bubble.height / 2 > logoItem.y
+            ) {
+              isIntersecting = true;
+              intersectingBubble = bubble;
+              break;
+            }
           }
         }
 
         if (isIntersecting && intersectingBubble) {
+          // Card-driven logo interaction (Desktop intersection)
           if (logoItem.element.dataset.active !== "true") {
             logoItem.element.dataset.active = "true";
           }
@@ -432,7 +464,6 @@ export function LandingExperience() {
           const tiltX = - (dy / distance) * maxTilt;
           const tiltY = (dx / distance) * maxTilt;
 
-          // Perspective tilt, reactive scaling up and slight rotate
           logoItem.element.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(1)}deg) rotateY(${tiltY.toFixed(1)}deg) scale(1.24) rotate(6deg)`;
           
           const glow = logoItem.element.querySelector('.logo-glow');
@@ -442,7 +473,6 @@ export function LandingExperience() {
             glow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.5) 0%, rgba(236,72,153,0.35) 50%, rgba(93,92,255,0) 100%)';
           }
 
-          // Target SVG paths to bloom/unfold and glow
           const paths = logoItem.element.querySelectorAll('path');
           paths.forEach((path, idx) => {
             if (path instanceof SVGPathElement) {
@@ -465,26 +495,68 @@ export function LandingExperience() {
             }
           });
         } else {
-          if (logoItem.element.dataset.active === "true") {
+          if (isMobile) {
+            // Coordinated mobile wave animation
             logoItem.element.dataset.active = "false";
-            logoItem.element.style.transform = "";
-            logoItem.element.style.filter = "";
-
+            
+            // Gentle scale pulse and rotation over time
+            const idleScale = 1.0 + idlePulse * 0.05;
+            const idleRotate = Math.sin(time * 0.5) * 3;
+            
+            logoItem.element.style.transform = `scale(${idleScale.toFixed(3)}) rotate(${idleRotate.toFixed(2)}deg)`;
+            
             const glow = logoItem.element.querySelector('.logo-glow');
             if (glow instanceof HTMLElement) {
-              glow.style.transform = '';
-              glow.style.opacity = '';
-              glow.style.background = '';
+              glow.style.transform = `scale(${(1.0 + idlePulse * 0.4).toFixed(3)})`;
+              glow.style.opacity = (0.5 + idlePulse * 0.4).toFixed(3);
+              glow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(236,72,153,0.2) 60%, rgba(93,92,255,0) 100%)';
             }
 
             const paths = logoItem.element.querySelectorAll('path');
-            paths.forEach((path) => {
+            paths.forEach((path, idx) => {
               if (path instanceof SVGPathElement) {
-                path.style.fill = '';
-                path.style.filter = '';
-                path.style.transform = '';
+                path.style.fill = 'url(#active-gradient)'; // Active gradient as default on mobile/idle
+                path.style.filter = `drop-shadow(0 0 ${(4 + 6 * idlePulse).toFixed(1)}px rgba(168, 85, 247, ${(0.3 + 0.4 * idlePulse).toFixed(2)}))`;
+                
+                // Gentle blooming pulse
+                let tx = 0;
+                let ty = 0;
+                if (idx === 0 || idx === 1) {
+                  tx = -4 * idlePulse;
+                  ty = 4 * idlePulse;
+                } else if (idx === 2 || idx === 3) {
+                  tx = 4 * idlePulse;
+                  ty = -4 * idlePulse;
+                } else {
+                  tx = -1.5 * idlePulse;
+                  ty = -1.5 * idlePulse;
+                }
+                path.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0px)`;
               }
             });
+          } else {
+            // Restore desktop original static style when not intersecting
+            if (logoItem.element.dataset.active === "true" || logoItem.element.style.transform !== "") {
+              logoItem.element.dataset.active = "false";
+              logoItem.element.style.transform = "";
+              logoItem.element.style.filter = "";
+
+              const glow = logoItem.element.querySelector('.logo-glow');
+              if (glow instanceof HTMLElement) {
+                glow.style.transform = '';
+                glow.style.opacity = '';
+                glow.style.background = '';
+              }
+
+              const paths = logoItem.element.querySelectorAll('path');
+              paths.forEach((path) => {
+                if (path instanceof SVGPathElement) {
+                  path.style.fill = '';
+                  path.style.filter = '';
+                  path.style.transform = '';
+                }
+              });
+            }
           }
         }
       }
