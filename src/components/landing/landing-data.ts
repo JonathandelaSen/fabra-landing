@@ -78,6 +78,7 @@ export interface AppFeature {
   color: "emerald" | "violet" | "amber" | "indigo" | "cyan" | "rose";
   top: string;
   left: string;
+  screenshot: string;
 }
 
 export const APP_FEATURES: AppFeature[] = [
@@ -160,6 +161,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "rose",
     top: "55%",
     left: "74%",
+    screenshot: "/screenshots/ai-model-options.png",
   },
   {
     id: "work-journal",

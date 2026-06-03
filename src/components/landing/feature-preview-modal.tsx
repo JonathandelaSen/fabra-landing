@@ -68,7 +68,7 @@ export function FeaturePreviewModal({ selectedFeature, onClose, onDemoClick }: F
                 <div className="min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4">
                   <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
                     <Image
-                      src="/screenshot.png"
+                      src={selectedFeature.screenshot}
                       alt={`${selectedFeature.title} real app screenshot`}
                       fill
                       sizes="calc(100vw - 2rem)"
