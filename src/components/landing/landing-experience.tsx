@@ -724,6 +724,7 @@ export function LandingExperience() {
   // JavaScript support for directed smooth scrolling
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
+      if (window.innerWidth < 1024) return;
       if (isScrollingRef.current) {
         e.preventDefault();
         return;
@@ -759,10 +760,12 @@ export function LandingExperience() {
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth < 1024) return;
       (window as any).touchStartY = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (window.innerWidth < 1024) return;
       if (isScrollingRef.current) {
         e.preventDefault();
         return;
