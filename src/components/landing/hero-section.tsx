@@ -53,7 +53,7 @@ export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef
             Craft your career, your way.
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68 mx-auto">
-            Go beyond the job search. Track achievements, plan your growth, and steer your entire professional journey with AI-driven insights.
+            Go beyond the job search. Track achievements, plan your growth, and steer your professional journey with an AI-driven platform.
           </p>
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center justify-center w-full">
             {/* Interactive Demo Glowing Button */}
