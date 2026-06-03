@@ -6,8 +6,10 @@ import {
   FileText,
   Globe,
   HelpCircle,
+  Kanban,
   Link2,
   MessageSquare,
+  MessagesSquare,
   Sparkles,
   Star,
   Target,
@@ -91,6 +93,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "emerald",
     top: "5%",
     left: "5%",
+    screenshot: "/screenshots/cv-ai-analysis.png",
   },
   {
     id: "cv-library",
@@ -101,6 +104,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "indigo",
     top: "18%",
     left: "45%",
+    screenshot: "/screenshots/cv-library.png",
   },
   {
     id: "templates",
@@ -111,6 +115,18 @@ export const APP_FEATURES: AppFeature[] = [
     color: "violet",
     top: "8%",
     left: "75%",
+    screenshot: "/screenshots/ats-friendly-cv-templates.png",
+  },
+  {
+    id: "job-chat",
+    title: "Job AI Chat",
+    teaser: "Prepara tu candidatura y chatea sobre el puesto",
+    description: "Chatea con la IA para analizar los requisitos de la oferta de empleo, resolver dudas específicas y ajustar tu posicionamiento profesional.",
+    icon: MessagesSquare,
+    color: "amber",
+    top: "24%",
+    left: "22%",
+    screenshot: "/screenshots/job-ai-chat.png",
   },
   {
     id: "cv-editor",
@@ -121,6 +137,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "cyan",
     top: "32%",
     left: "10%",
+    screenshot: "/screenshots/cv-ai-editor.png",
   },
   {
     id: "job-analyses",
@@ -131,6 +148,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "amber",
     top: "45%",
     left: "48%",
+    screenshot: "/screenshots/job-ai-analysis.png",
   },
   {
     id: "interview-questions",
@@ -141,6 +159,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "rose",
     top: "35%",
     left: "76%",
+    screenshot: "/screenshots/interview-questions.png",
   },
   {
     id: "public-cv-url",
@@ -151,6 +170,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "cyan",
     top: "56%",
     left: "32%",
+    screenshot: "/screenshots/public-cv-url.png",
   },
   {
     id: "ai-model-options",
@@ -164,6 +184,17 @@ export const APP_FEATURES: AppFeature[] = [
     screenshot: "/screenshots/ai-model-options.png",
   },
   {
+    id: "job-tracking",
+    title: "Job Search Tracking",
+    teaser: "Gestiona tus ofertas de empleo en un tablero visual",
+    description: "Organiza tu búsqueda de trabajo de forma eficiente. Clasifica tus candidaturas por fases de selección, añade notas y mantén el control de tus procesos.",
+    icon: Kanban,
+    color: "emerald",
+    top: "64%",
+    left: "50%",
+    screenshot: "/screenshots/job-search-tracking-kanban.png",
+  },
+  {
     id: "work-journal",
     title: "Work Journal",
     teaser: "Registra tus logros y hitos del día a día",
@@ -172,6 +203,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "emerald",
     top: "70%",
     left: "8%",
+    screenshot: "/screenshots/work-journal.png",
   },
   {
     id: "objectives",
@@ -182,6 +214,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "cyan",
     top: "78%",
     left: "38%",
+    screenshot: "/screenshots/work-career-objectives.png",
   },
   {
     id: "received-feedback",
@@ -192,6 +225,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "violet",
     top: "72%",
     left: "70%",
+    screenshot: "/screenshots/received-feedback.png",
   },
   {
     id: "feedback-notes",
@@ -202,6 +236,7 @@ export const APP_FEATURES: AppFeature[] = [
     color: "indigo",
     top: "84%",
     left: "12%",
+    screenshot: "/screenshots/feedback-notes.png",
   },
 ];
 
