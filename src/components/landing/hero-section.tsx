@@ -49,7 +49,7 @@ export function HeroSection({ heroRef, cardRefs, letterRefs, hoveredRef, onFeatu
             Craft your career, your way.
           </h1>
           <p className="mt-7 max-w-2xl text-lg leading-8 text-white/68 mx-auto">
-            Analyze your CV with AI, understand your strongest signal, and start shaping the next version of your career.
+            Go beyond the job search. Track achievements, plan your growth, and steer your entire professional journey with AI-driven insights.
           </p>
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center justify-center w-full">
             {/* Interactive Demo Glowing Button */}
