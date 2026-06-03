@@ -1,16 +1,30 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Sparkles } from "lucide-react";
 import { appUrl } from "@/lib/demo-data";
 import { AppFeature, featureColorMap } from "./landing-data";
 
 type FeaturePreviewModalProps = {
   selectedFeature: AppFeature | null;
+  allFeatures: AppFeature[];
   onClose: () => void;
   onDemoClick: () => void;
+  onPrev: () => void;
+  onNext: () => void;
 };
 
-export function FeaturePreviewModal({ selectedFeature, onClose, onDemoClick }: FeaturePreviewModalProps) {
+export function FeaturePreviewModal({
+  selectedFeature,
+  allFeatures,
+  onClose,
+  onDemoClick,
+  onPrev,
+  onNext,
+}: FeaturePreviewModalProps) {
+  const currentIndex = selectedFeature
+    ? allFeatures.findIndex((f) => f.id === selectedFeature.id)
+    : -1;
+
   return (
     <>
       {/* Screenshot detail modal */}
@@ -42,7 +56,7 @@ export function FeaturePreviewModal({ selectedFeature, onClose, onDemoClick }: F
                     </div>
                     <div className="min-w-0">
                       <span className={`block text-[10px] font-black uppercase tracking-[0.22em] ${featureColorMap[selectedFeature.color].text}`}>
-                        Feature preview
+                        Feature preview {currentIndex !== -1 ? `• ${currentIndex + 1} of ${allFeatures.length}` : ""}
                       </span>
                       <h2 className="truncate text-xl font-extrabold leading-tight text-white sm:text-2xl lg:text-3xl">
                         {selectedFeature.title}
@@ -65,16 +79,57 @@ export function FeaturePreviewModal({ selectedFeature, onClose, onDemoClick }: F
                   </div>
                 </div>
 
-                <div className="min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4">
+                <div className="relative min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4 group/modal">
                   <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
-                    <Image
-                      src={selectedFeature.screenshot}
-                      alt={`${selectedFeature.title} real app screenshot`}
-                      fill
-                      sizes="calc(100vw - 2rem)"
-                      className="object-contain select-none pointer-events-none"
-                    />
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={selectedFeature.id}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="absolute inset-0"
+                      >
+                        <Image
+                          src={selectedFeature.screenshot}
+                          alt={`${selectedFeature.title} real app screenshot`}
+                          fill
+                          sizes="calc(100vw - 2rem)"
+                          className="object-contain select-none pointer-events-none p-2 sm:p-4"
+                        />
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
+
+                  {allFeatures.length > 1 && (
+                    <>
+                      {/* Left Arrow Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPrev();
+                        }}
+                        className="absolute left-4 sm:left-6 lg:left-8 top-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#080910]/80 text-white/70 backdrop-blur-md transition-all duration-300 hover:border-white/30 hover:bg-[#080910] hover:text-white hover:scale-110 active:scale-95 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] cursor-pointer"
+                        title="Previous feature (Left Arrow)"
+                      >
+                        <ChevronLeft className="size-5 sm:size-6" />
+                      </button>
+
+                      {/* Right Arrow Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNext();
+                        }}
+                        className="absolute right-4 sm:right-6 lg:right-8 top-1/2 z-20 flex h-10 w-10 sm:h-12 sm:w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-[#080910]/80 text-white/70 backdrop-blur-md transition-all duration-300 hover:border-white/30 hover:bg-[#080910] hover:text-white hover:scale-110 active:scale-95 hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] cursor-pointer"
+                        title="Next feature (Right Arrow)"
+                      >
+                        <ChevronRight className="size-5 sm:size-6" />
+                      </button>
+                    </>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-3 border-t border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">

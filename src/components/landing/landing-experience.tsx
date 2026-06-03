@@ -414,7 +414,21 @@ export function LandingExperience() {
   useEffect(() => {
     if (!selectedFeature) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelectedFeature(null);
+      if (e.key === "Escape") {
+        setSelectedFeature(null);
+      } else if (e.key === "ArrowLeft") {
+        const currentIndex = APP_FEATURES.findIndex((f) => f.id === selectedFeature.id);
+        if (currentIndex !== -1) {
+          const prevIndex = (currentIndex - 1 + APP_FEATURES.length) % APP_FEATURES.length;
+          setSelectedFeature(APP_FEATURES[prevIndex]);
+        }
+      } else if (e.key === "ArrowRight") {
+        const currentIndex = APP_FEATURES.findIndex((f) => f.id === selectedFeature.id);
+        if (currentIndex !== -1) {
+          const nextIndex = (currentIndex + 1) % APP_FEATURES.length;
+          setSelectedFeature(APP_FEATURES[nextIndex]);
+        }
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -636,10 +650,25 @@ export function LandingExperience() {
 
       <FeaturePreviewModal
         selectedFeature={selectedFeature}
+        allFeatures={APP_FEATURES}
         onClose={() => setSelectedFeature(null)}
         onDemoClick={() => {
           setSelectedFeature(null);
           scrollToFlow();
+        }}
+        onPrev={() => {
+          const currentIndex = APP_FEATURES.findIndex((f) => f.id === selectedFeature?.id);
+          if (currentIndex !== -1) {
+            const prevIndex = (currentIndex - 1 + APP_FEATURES.length) % APP_FEATURES.length;
+            setSelectedFeature(APP_FEATURES[prevIndex]);
+          }
+        }}
+        onNext={() => {
+          const currentIndex = APP_FEATURES.findIndex((f) => f.id === selectedFeature?.id);
+          if (currentIndex !== -1) {
+            const nextIndex = (currentIndex + 1) % APP_FEATURES.length;
+            setSelectedFeature(APP_FEATURES[nextIndex]);
+          }
         }}
       />
     </main>
