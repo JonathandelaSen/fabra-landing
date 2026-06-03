@@ -1,5 +1,5 @@
 export const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://tts-cv-ai-checker.vercel.app/";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://app.fabraapp.com";
 
 export const profile = {
   name: "Jonathan de la Sen",
