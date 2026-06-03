@@ -2,10 +2,11 @@
 
 import type React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight, Image as ImageIcon } from "lucide-react";
 import { AnalysisExperience, FlowHeader, GuideBanner, LoadingExperience, UploadExperience } from "./flow-common";
 import { JobMatchAnalysisView, JobMatchFlowHeader, JobMatchLoadingExperience } from "./job-match-analysis-flow";
 import { JobMatchChatView, JobMatchTrackingView } from "./job-match-followup-flow";
-import { FlowStep } from "./landing-data";
+import { APP_FEATURES, AppFeature, FlowStep } from "./landing-data";
 import { CompletionExperience, TemplateSelectionView, TemplateStudioView } from "./template-completion-flow";
 
 type FlowSectionProps = {
@@ -25,6 +26,7 @@ type FlowSectionProps = {
   onSkillsPositionChange: React.Dispatch<React.SetStateAction<"bottom" | "top">>;
   onSummaryCondensedChange: React.Dispatch<React.SetStateAction<boolean>>;
   onSuggestionsAppliedChange: React.Dispatch<React.SetStateAction<boolean>>;
+  onFeatureSelect: (feature: AppFeature) => void;
 };
 
 export function FlowSection({
@@ -44,6 +46,7 @@ export function FlowSection({
   onSkillsPositionChange,
   onSummaryCondensedChange,
   onSuggestionsAppliedChange,
+  onFeatureSelect,
 }: FlowSectionProps) {
   return (
     <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
@@ -153,7 +156,7 @@ export function FlowSection({
                 <JobMatchAnalysisView 
                   onNext={() => onStepChange("job-chat")} 
                   onBack={() => onStepChange("completion")} 
-                />
+                  />
               </motion.div>
             ) : step === "job-chat" ? (
               <motion.div
@@ -207,9 +210,40 @@ export function FlowSection({
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Alternative with screenshots */}
+          <div className="mt-16 flex flex-col items-center justify-center border-t border-white/5 pt-12 text-center select-none">
+            <div className="relative w-full max-w-3xl rounded-2xl border border-white/10 bg-white/[0.02] p-6 sm:p-8 backdrop-blur-xl shadow-2xl overflow-hidden group">
+              {/* Glow effects */}
+              <div className="absolute inset-0 -z-10 bg-radial from-violet-500/[0.05] to-transparent blur-xl pointer-events-none group-hover:from-violet-500/[0.08] transition-all duration-500" />
+              <div className="absolute -top-12 -left-12 size-24 rounded-full bg-violet-600/10 blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 size-24 rounded-full bg-fuchsia-600/10 blur-2xl pointer-events-none" />
+
+              <div className="flex flex-col sm:flex-row items-center gap-6 justify-between text-left">
+                <div className="max-w-md">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-violet-500/10 text-violet-300 border border-violet-500/20 mb-3">
+                    <ImageIcon className="size-3" />
+                    Quick Look
+                  </span>
+                  <h3 className="text-lg font-bold text-white tracking-tight sm:text-xl">
+                    Prefer to explore the app directly?
+                  </h3>
+                  <p className="mt-2 text-xs text-white/50 leading-relaxed">
+                    View all key tools and workspaces in Fabra through real product screenshots.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onFeatureSelect(APP_FEATURES[0])}
+                  className="w-full sm:w-auto inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 text-sm font-bold text-white shadow-lg transition hover:bg-white/[0.08] hover:border-white/20 hover:scale-[1.03] active:scale-[0.97] cursor-pointer group/btn"
+                >
+                  <span>View screenshots</span>
+                  <ArrowRight className="size-4 text-white/60 transition-transform duration-300 group-hover/btn:translate-x-1" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
-
-
   );
 }

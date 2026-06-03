@@ -646,6 +646,7 @@ export function LandingExperience() {
         onSkillsPositionChange={setSkillsPosition}
         onSummaryCondensedChange={setIsSummaryCondensed}
         onSuggestionsAppliedChange={setIsSuggestionsApplied}
+        onFeatureSelect={setSelectedFeature}
       />
 
       <FeaturePreviewModal
