@@ -3,9 +3,11 @@ import { motion } from "framer-motion";
 import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { appUrl } from "@/lib/demo-data";
 import { APP_FEATURES, AppFeature, featureColorMap } from "./landing-data";
+import { FabraLogo } from "./fabra-logo";
 
 type HeroSectionProps = {
   heroRef: React.RefObject<HTMLElement | null>;
+  logoRef: React.RefObject<HTMLDivElement | null>;
   cardRefs: React.RefObject<(HTMLButtonElement | null)[]>;
   letterRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   hoveredRef: React.RefObject<string | null>;
@@ -13,15 +15,17 @@ type HeroSectionProps = {
   onDemoClick: () => void;
 };
 
-export function HeroSection({ heroRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect, onDemoClick }: HeroSectionProps) {
+export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect, onDemoClick }: HeroSectionProps) {
   return (
     <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef}>
       <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
 
       <div className="w-full pointer-events-none flex flex-col items-center justify-center text-center">
         {/* Title Header (Goes in front of cards: z-30) */}
-        <div className="relative z-30 pointer-events-auto">
-          <p className="mb-6 text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl select-none">
+        <div className="relative z-30 pointer-events-auto flex flex-col items-center gap-8 mb-8">
+          <FabraLogo logoRef={logoRef} className="-mt-12" />
+
+          <p className="text-5xl font-black tracking-[0.18em] text-white sm:text-7xl lg:text-8xl select-none">
             {["F", "A", "B", "R", "A"].map((char, idx) => (
               <span
                 key={idx}

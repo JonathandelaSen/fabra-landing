@@ -19,8 +19,16 @@ export function LandingExperience() {
   const isScrollingRef = useRef(false);
 
   const heroRef = useRef<HTMLElement | null>(null);
+  const logoRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const logoRectRef = useRef<{
+    element: HTMLDivElement;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const lettersRectRef = useRef<{
     element: HTMLSpanElement;
     x: number;
@@ -66,6 +74,26 @@ export function LandingExperience() {
         .filter((item): item is { element: HTMLSpanElement; x: number; y: number; width: number; height: number } => item !== null);
     };
 
+    const measureLogo = () => {
+      if (!heroRef.current || !logoRef.current) return;
+      const heroRect = heroRef.current.getBoundingClientRect();
+      
+      const prevTransform = logoRef.current.style.transform;
+      logoRef.current.style.transform = "none";
+      
+      const logoRect = logoRef.current.getBoundingClientRect();
+      
+      logoRef.current.style.transform = prevTransform;
+      
+      logoRectRef.current = {
+        element: logoRef.current,
+        x: logoRect.left - heroRect.left,
+        y: logoRect.top - heroRect.top,
+        width: logoRect.width,
+        height: logoRect.height,
+      };
+    };
+
     const initPhysics = () => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -76,6 +104,7 @@ export function LandingExperience() {
       containerHeightRef.current = containerH;
 
       measureLetters();
+      measureLogo();
 
       // Initialize bubble structures
       const newBubbles: PhysicsBubble[] = APP_FEATURES.map((feature, index) => {
@@ -129,6 +158,7 @@ export function LandingExperience() {
       containerHeightRef.current = newH;
 
       measureLetters();
+      measureLogo();
 
       if (bubblesRef.current.length === 0) {
         initPhysics();
@@ -160,7 +190,10 @@ export function LandingExperience() {
     window.addEventListener("resize", handleResize);
 
     // Periodically update coordinates (every 1s) to correct any layout shifts/late font loads
-    const intervalId = setInterval(measureLetters, 1000);
+    const intervalId = setInterval(() => {
+      measureLetters();
+      measureLogo();
+    }, 1000);
 
     // Animation frame update
     const updatePhysics = () => {
@@ -360,6 +393,98 @@ export function LandingExperience() {
             letter.element.style.webkitBackgroundClip = "";
             letter.element.style.backgroundClip = "";
             letter.element.style.webkitTextFillColor = "";
+          }
+        }
+      }
+
+      // 5. Update logo intersections, dynamic 3D tilt, ribbon blooming and glow effects
+      const logoItem = logoRectRef.current;
+      if (logoItem) {
+        let isIntersecting = false;
+        let intersectingBubble = null;
+
+        for (let i = 0; i < numBubbles; i++) {
+          const bubble = bubbles[i];
+          const cardCenterX = bubble.x + bubble.width / 2;
+          const cardCenterY = bubble.y + bubble.height / 2;
+
+          if (
+            cardCenterX - bubble.width / 2 < logoItem.x + logoItem.width &&
+            cardCenterX + bubble.width / 2 > logoItem.x &&
+            cardCenterY - bubble.height / 2 < logoItem.y + logoItem.height &&
+            cardCenterY + bubble.height / 2 > logoItem.y
+          ) {
+            isIntersecting = true;
+            intersectingBubble = bubble;
+            break;
+          }
+        }
+
+        if (isIntersecting && intersectingBubble) {
+          if (logoItem.element.dataset.active !== "true") {
+            logoItem.element.dataset.active = "true";
+          }
+          const dx = (intersectingBubble.x + intersectingBubble.width / 2) - (logoItem.x + logoItem.width / 2);
+          const dy = (intersectingBubble.y + intersectingBubble.height / 2) - (logoItem.y + logoItem.height / 2);
+
+          const maxTilt = 24;
+          const distance = Math.hypot(dx, dy) || 1;
+          const tiltX = - (dy / distance) * maxTilt;
+          const tiltY = (dx / distance) * maxTilt;
+
+          // Perspective tilt, reactive scaling up and slight rotate
+          logoItem.element.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(1)}deg) rotateY(${tiltY.toFixed(1)}deg) scale(1.24) rotate(6deg)`;
+          
+          const glow = logoItem.element.querySelector('.logo-glow');
+          if (glow instanceof HTMLElement) {
+            glow.style.transform = 'scale(1.8)';
+            glow.style.opacity = '1';
+            glow.style.background = 'radial-gradient(circle, rgba(168,85,247,0.5) 0%, rgba(236,72,153,0.35) 50%, rgba(93,92,255,0) 100%)';
+          }
+
+          // Target SVG paths to bloom/unfold and glow
+          const paths = logoItem.element.querySelectorAll('path');
+          paths.forEach((path, idx) => {
+            if (path instanceof SVGPathElement) {
+              path.style.fill = 'url(#active-gradient)';
+              path.style.filter = 'drop-shadow(0 0 10px rgba(168, 85, 247, 0.72))';
+              
+              let tx = 0;
+              let ty = 0;
+              if (idx === 0 || idx === 1) {
+                tx = -6;
+                ty = 6;
+              } else if (idx === 2 || idx === 3) {
+                tx = 6;
+                ty = -6;
+              } else {
+                tx = -2;
+                ty = -2;
+              }
+              path.style.transform = `translate3d(${tx}px, ${ty}px, 0px)`;
+            }
+          });
+        } else {
+          if (logoItem.element.dataset.active === "true") {
+            logoItem.element.dataset.active = "false";
+            logoItem.element.style.transform = "";
+            logoItem.element.style.filter = "";
+
+            const glow = logoItem.element.querySelector('.logo-glow');
+            if (glow instanceof HTMLElement) {
+              glow.style.transform = '';
+              glow.style.opacity = '';
+              glow.style.background = '';
+            }
+
+            const paths = logoItem.element.querySelectorAll('path');
+            paths.forEach((path) => {
+              if (path instanceof SVGPathElement) {
+                path.style.fill = '';
+                path.style.filter = '';
+                path.style.transform = '';
+              }
+            });
           }
         }
       }
@@ -621,6 +746,7 @@ export function LandingExperience() {
 
       <HeroSection
         heroRef={heroRef}
+        logoRef={logoRef}
         cardRefs={cardRefs}
         letterRefs={letterRefs}
         hoveredRef={hoveredRef}
