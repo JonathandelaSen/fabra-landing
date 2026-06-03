@@ -339,10 +339,12 @@ export function LandingExperience() {
 
         if (isIntersecting) {
           if (letter.element.dataset.active !== "true") {
+            const pct = letterRects.length > 1 ? (j / (letterRects.length - 1)) * 100 : 0;
             letter.element.dataset.active = "true";
             letter.element.style.transform = "scale(1.22) translateY(-4px)";
-            letter.element.style.textShadow = "0 0 10px rgba(0, 255, 255, 0.7), 0 0 25px rgba(255, 0, 160, 0.5)";
-            letter.element.style.backgroundImage = "linear-gradient(135deg, #ff007f 0%, #7f00ff 50%, #00ffff 100%)";
+            letter.element.style.backgroundImage = "linear-gradient(90deg, #7c3aed 0%, #c026d3 50%, #4f46e5 100%)";
+            letter.element.style.backgroundSize = `${letterRects.length * 100}% 100%`;
+            letter.element.style.backgroundPosition = `${pct}% 0`;
             letter.element.style.webkitBackgroundClip = "text";
             letter.element.style.backgroundClip = "text";
             letter.element.style.webkitTextFillColor = "transparent";
@@ -353,6 +355,8 @@ export function LandingExperience() {
             letter.element.style.transform = "";
             letter.element.style.textShadow = "";
             letter.element.style.backgroundImage = "";
+            letter.element.style.backgroundSize = "";
+            letter.element.style.backgroundPosition = "";
             letter.element.style.webkitBackgroundClip = "";
             letter.element.style.backgroundClip = "";
             letter.element.style.webkitTextFillColor = "";
