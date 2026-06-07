@@ -1,4 +1,5 @@
 import type React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { appUrl } from "@/lib/demo-data";
@@ -12,10 +13,9 @@ type HeroSectionProps = {
   letterRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   hoveredRef: React.RefObject<string | null>;
   onFeatureSelect: (feature: AppFeature) => void;
-  onDemoClick: () => void;
 };
 
-export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect, onDemoClick }: HeroSectionProps) {
+export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect }: HeroSectionProps) {
   return (
     <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef}>
       <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
@@ -57,15 +57,14 @@ export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef
           </p>
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center justify-center w-full">
             {/* Interactive Demo Glowing Button */}
-            <button
-              type="button"
-              onClick={onDemoClick}
+            <Link
+              href="/demo"
               className="group animate-pulse-scale-glow relative inline-flex h-14 w-full sm:w-auto items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-8 text-base font-bold text-white select-none cursor-pointer"
             >
               <Sparkles className="size-5 text-violet-200 animate-pulse" />
               <span>Try the Interactive Demo</span>
               <ArrowRight className="size-5 text-white/80 group-hover:translate-x-1.5 transition-transform duration-300" />
-            </button>
+            </Link>
 
             <a
               href={appUrl}

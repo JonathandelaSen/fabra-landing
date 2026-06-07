@@ -2,21 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FeaturePreviewModal } from "./feature-preview-modal";
-import { FlowSection } from "./flow-section";
 import { HeroSection } from "./hero-section";
 import {
   APP_FEATURES,
   AppFeature,
-  FlowStep,
   PhysicsBubble,
 } from "./landing-data";
 
 export function LandingExperience() {
-  const [step, setStep] = useState<FlowStep>("idle");
-  const [restoreVersion, setRestoreVersion] = useState(0);
   const [selectedFeature, setSelectedFeature] = useState<AppFeature | null>(null);
-  const flowRef = useRef<HTMLElement | null>(null);
-  const isScrollingRef = useRef(false);
 
   const heroRef = useRef<HTMLElement | null>(null);
   const logoRef = useRef<HTMLDivElement | null>(null);
@@ -41,7 +35,6 @@ export function LandingExperience() {
   const containerWidthRef = useRef<number>(0);
   const containerHeightRef = useRef<number>(0);
   const requestRef = useRef<number | null>(null);
-  const analyzeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Only run physics simulation on screen widths >= 1024 (desktop)
@@ -584,13 +577,11 @@ export function LandingExperience() {
     if (typeof window === "undefined") return;
 
     const recoverFromHistoryRestore = () => {
-      isScrollingRef.current = false;
       hoveredRef.current = null;
       setSelectedFeature(null);
 
       window.requestAnimationFrame(() => {
         window.dispatchEvent(new Event("resize"));
-        setRestoreVersion((version) => version + 1);
       });
     };
 
@@ -631,189 +622,7 @@ export function LandingExperience() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedFeature]);
 
-  useEffect(() => {
-    return () => {
-      if (analyzeTimerRef.current) {
-        window.clearTimeout(analyzeTimerRef.current);
-      }
-    };
-  }, []);
 
-  // Template Customizer Sandbox States
-  const [selectedTemplate, setSelectedTemplate] = useState<"linea" | "marco" | "pulso" | "filo">("pulso");
-  const [accentColor, setAccentColor] = useState<"default" | "cool">("default");
-  const [skillsPosition, setSkillsPosition] = useState<"bottom" | "top">("bottom");
-  const [isSummaryCondensed, setIsSummaryCondensed] = useState(false);
-  const [isSuggestionsApplied, setIsSuggestionsApplied] = useState(false);
-
-  useEffect(() => {
-    if (step !== "uploading") return;
-
-    const timer = window.setTimeout(() => setStep("ready"), 1500);
-    return () => window.clearTimeout(timer);
-  }, [step]);
-
-  useEffect(() => {
-    const stepsToScroll = [
-      "analysis",
-      "templates",
-      "studio",
-      "completion",
-      "job-loading",
-      "job-analysis",
-      "job-chat",
-      "job-tracking",
-    ];
-    if (stepsToScroll.includes(step)) {
-      flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [step]);
-
-  const scrollToFlow = () => {
-    flowRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const analyze = () => {
-    if (analyzeTimerRef.current) {
-      window.clearTimeout(analyzeTimerRef.current);
-    }
-    setStep("loading");
-    analyzeTimerRef.current = window.setTimeout(() => {
-      setStep("analysis");
-      analyzeTimerRef.current = null;
-    }, 3800);
-  };
-
-  const resetStudioStates = () => {
-    setAccentColor("default");
-    setSkillsPosition("bottom");
-    setIsSummaryCondensed(false);
-    setIsSuggestionsApplied(false);
-  };
-
-  const handleTabClick = (tabKey: "upload" | "analysis" | "studio" | "match") => {
-    resetStudioStates();
-    if (tabKey === "upload") {
-      if (step === "analysis" || step === "loading" || step === "templates" || step === "studio" || step === "completion") {
-        setStep("ready");
-      } else {
-        setStep("idle");
-      }
-    } else if (tabKey === "analysis") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
-        if (analyzeTimerRef.current) {
-          window.clearTimeout(analyzeTimerRef.current);
-        }
-        setStep("loading");
-        analyzeTimerRef.current = window.setTimeout(() => {
-          setStep("analysis");
-          analyzeTimerRef.current = null;
-        }, 3800);
-      }
-    } else if (tabKey === "studio") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
-        setStep("templates");
-      }
-    } else if (tabKey === "match") {
-      if (step === "completion") {
-        // Already at completion, do nothing
-      }
-    }
-  };
-
-  // JavaScript support for directed smooth scrolling
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (window.innerWidth < 1024) return;
-      if (isScrollingRef.current) {
-        e.preventDefault();
-        return;
-      }
-
-      const deltaY = e.deltaY;
-      const currentScrollY = window.scrollY;
-      
-      if (!flowRef.current) return;
-      const flowOffsetTop = flowRef.current.offsetTop;
-      const inHero = currentScrollY < flowOffsetTop - 100;
-
-      if (deltaY > 0) {
-        if (inHero) {
-          e.preventDefault();
-          isScrollingRef.current = true;
-          flowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-          setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 800);
-        }
-      } else if (deltaY < 0) {
-        if (!inHero && window.scrollY <= flowOffsetTop + 10) {
-          e.preventDefault();
-          isScrollingRef.current = true;
-          const topElement = document.getElementById("top");
-          topElement?.scrollIntoView({ behavior: "smooth", block: "start" });
-          setTimeout(() => {
-            isScrollingRef.current = false;
-          }, 800);
-        }
-      }
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (window.innerWidth < 1024) return;
-      (window as any).touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (window.innerWidth < 1024) return;
-      if (isScrollingRef.current) {
-        e.preventDefault();
-        return;
-      }
-
-      const touchStartY = (window as any).touchStartY || 0;
-      const touchEndY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchEndY;
-      const currentScrollY = window.scrollY;
-      
-      if (!flowRef.current) return;
-      const flowOffsetTop = flowRef.current.offsetTop;
-      const inHero = currentScrollY < flowOffsetTop - 100;
-
-      if (Math.abs(deltaY) > 20) {
-        if (deltaY > 0) {
-          if (inHero) {
-            e.preventDefault();
-            isScrollingRef.current = true;
-            flowRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-            setTimeout(() => {
-              isScrollingRef.current = false;
-            }, 800);
-          }
-        } else {
-          if (!inHero && window.scrollY <= flowOffsetTop + 10) {
-            e.preventDefault();
-            isScrollingRef.current = true;
-            const topElement = document.getElementById("top");
-            topElement?.scrollIntoView({ behavior: "smooth", block: "start" });
-            setTimeout(() => {
-              isScrollingRef.current = false;
-            }, 800);
-          }
-        }
-      }
-    };
-
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-    };
-  }, [step]);
 
   return (
     <main className="relative isolate min-h-screen overflow-hidden">
@@ -826,38 +635,12 @@ export function LandingExperience() {
         letterRefs={letterRefs}
         hoveredRef={hoveredRef}
         onFeatureSelect={setSelectedFeature}
-        onDemoClick={scrollToFlow}
-      />
-
-      <FlowSection
-        key={restoreVersion}
-        flowRef={flowRef}
-        step={step}
-        selectedTemplate={selectedTemplate}
-        accentColor={accentColor}
-        skillsPosition={skillsPosition}
-        isSummaryCondensed={isSummaryCondensed}
-        isSuggestionsApplied={isSuggestionsApplied}
-        onTabClick={handleTabClick}
-        onStepChange={setStep}
-        onAnalyze={analyze}
-        onResetStudioStates={resetStudioStates}
-        onSelectedTemplateChange={setSelectedTemplate}
-        onAccentColorChange={setAccentColor}
-        onSkillsPositionChange={setSkillsPosition}
-        onSummaryCondensedChange={setIsSummaryCondensed}
-        onSuggestionsAppliedChange={setIsSuggestionsApplied}
-        onFeatureSelect={setSelectedFeature}
       />
 
       <FeaturePreviewModal
         selectedFeature={selectedFeature}
         allFeatures={APP_FEATURES}
         onClose={() => setSelectedFeature(null)}
-        onDemoClick={() => {
-          setSelectedFeature(null);
-          scrollToFlow();
-        }}
         onPrev={() => {
           const currentIndex = APP_FEATURES.findIndex((f) => f.id === selectedFeature?.id);
           if (currentIndex !== -1) {

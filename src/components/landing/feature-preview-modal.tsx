@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Sparkles } from "lucide-react";
@@ -8,7 +9,6 @@ type FeaturePreviewModalProps = {
   selectedFeature: AppFeature | null;
   allFeatures: AppFeature[];
   onClose: () => void;
-  onDemoClick: () => void;
   onPrev: () => void;
   onNext: () => void;
 };
@@ -17,7 +17,6 @@ export function FeaturePreviewModal({
   selectedFeature,
   allFeatures,
   onClose,
-  onDemoClick,
   onPrev,
   onNext,
 }: FeaturePreviewModalProps) {
@@ -138,17 +137,15 @@ export function FeaturePreviewModal({
                   </p>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onDemoClick();
-                      }}
+                    <Link
+                      href="/demo"
+                      onClick={() => onClose()}
                       className="group animate-pulse-scale-glow relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 px-6 text-sm font-extrabold text-white select-none cursor-pointer"
                     >
                       <Sparkles className="size-4 text-violet-200 animate-pulse" />
                       <span>Try the Interactive Demo</span>
                       <ArrowRight className="size-4 text-white/80 transition-transform duration-300 group-hover:translate-x-1" />
-                    </button>
+                    </Link>
                     <a
                       href={appUrl}
                       target="_blank"
