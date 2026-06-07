@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Briefcase, Check, ClipboardList, ExternalLink, HelpCircle, Loader2, MessageSquare, Sparkles, Target } from "lucide-react";
 import { job } from "@/lib/demo-data";
@@ -285,11 +285,57 @@ export function JobMatchAnalysisView({
 }) {
   const [activeHeroTab, setActiveHeroTab] = useState("summary");
 
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: "ai" | "user"; text: string }>>([
+    {
+      sender: "ai",
+      text: "Hello Jonathan! I've analyzed your CV against the Staff Software Engineer role at Northstar AI. How can I help you customize your profile or prepare for this role? Click one of the options below to tailor your details."
+    }
+  ]);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+  const [usedChatPills, setUsedChatPills] = useState<string[]>([]);
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [chatMessages, isChatTyping]);
+
+  const handleChatPillClick = (type: "edpuzzle" | "evaluation" | "leadership") => {
+    if (isChatTyping) return;
+
+    let userText = "";
+    let aiText = "";
+
+    if (type === "edpuzzle") {
+      userText = "Tailor my Edpuzzle experience for this job.";
+      aiText = "To align with Northstar AI's backend stack, highlight your scaling achievements. Suggestion:\n\n\"Scaled Edpuzzle's core Node.js/MongoDB analytics engine to support 2.2M+ DAU, reducing database query latencies by 35% through Redis caching schemas.\"";
+    } else if (type === "evaluation") {
+      userText = "How do I address the AI Evaluation gap?";
+      aiText = "Northstar AI requires experience with AI evaluation/observability. You can position this by discussing how you monitored prompt drifts at Edpuzzle:\n\n\"Built evaluation frameworks using LLM-as-a-judge patterns to run E2E regression testing on prompt templates, reducing prompt drift incidents by 40%.\"";
+    } else if (type === "leadership") {
+      userText = "Highlight my Staff-level leadership experience.";
+      aiText = "To showcase Staff-level impact, highlight cross-team standard setting and mentorship:\n\n\"Defined architectural guidelines for DDD boundaries across 4 squads, mentoring 12+ developers and establishing unified event-driven patterns in Kotlin & TypeScript.\"";
+    }
+
+    setChatMessages((prev) => [...prev, { sender: "user", text: userText }]);
+    setUsedChatPills((prev) => [...prev, type]);
+    setIsChatTyping(true);
+
+    setTimeout(() => {
+      setChatMessages((prev) => [...prev, { sender: "ai", text: aiText }]);
+      setIsChatTyping(false);
+    }, 1200);
+  };
+
   const heroTabs = [
     { id: "summary", label: "Summary", icon: ClipboardList },
     { id: "offer", label: "Offer Details", icon: Briefcase },
     { id: "questions", label: "Questions", icon: HelpCircle },
-    { id: "copilot", label: "AI Copilot", icon: Sparkles },
+    { id: "chat", label: "Chat", icon: Sparkles },
   ];
 
   return (
@@ -672,52 +718,128 @@ export function JobMatchAnalysisView({
             </motion.div>
           )}
 
-          {activeHeroTab === "copilot" && (
+          {activeHeroTab === "chat" && (
             <motion.div
-              key="copilot-tab"
+              key="chat-tab"
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="rounded-3xl border border-white/10 bg-[#0c0d12]/40 p-10 sm:p-12 backdrop-blur-sm relative overflow-hidden flex flex-col items-center justify-center gap-6 text-center w-full animate-fadeIn"
+              className="w-full flex flex-col h-[550px] rounded-3xl border border-white/10 bg-[#0c0d12]/40 backdrop-blur-sm shadow-2xl overflow-hidden relative"
             >
               {/* Background glow decoration */}
-              <div className="absolute -right-32 -bottom-32 size-96 bg-radial from-violet-500/[0.08] to-transparent blur-3xl pointer-events-none" />
-              <div className="absolute -left-32 -top-32 size-96 bg-radial from-indigo-500/[0.06] to-transparent blur-3xl pointer-events-none" />
+              <div className="absolute -right-32 -bottom-32 size-96 bg-radial from-violet-500/[0.06] to-transparent blur-3xl pointer-events-none" />
+              <div className="absolute -left-32 -top-32 size-96 bg-radial from-indigo-500/[0.04] to-transparent blur-3xl pointer-events-none" />
 
-              <div className="size-16 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-2 relative z-10">
-                <MessageSquare className="size-8 text-violet-400" />
+              {/* Chat header */}
+              <div className="p-5 border-b border-white/8 bg-white/[0.02] flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-3">
+                  <div className="size-3.5 rounded-full bg-violet-500 animate-pulse" />
+                  <div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">AI Copilot Chat</h4>
+                    <p className="text-[10px] text-white/42 font-medium">Role Alignment Coaching</p>
+                  </div>
+                </div>
+                <div className="text-[11px] font-bold text-violet-400 border border-violet-500/20 bg-violet-500/5 px-3 py-1.5 rounded-full">
+                  Target: Staff Software Engineer
+                </div>
               </div>
 
-              <div className="space-y-2 max-w-md relative z-10">
-                <h4 className="text-xl sm:text-2xl font-black text-white">Consult Fabra AI Copilot</h4>
-                <p className="text-xs sm:text-sm text-white/55 leading-relaxed">
-                  Need custom positioning strategies, custom bullet points, or real-time simulation answers? Open the sandbox chat to interact directly with your CV coach.
-                </p>
+              {/* Message history */}
+              <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-4 relative z-10 scrollbar-thin">
+                {chatMessages.map((msg, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`flex w-full ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div 
+                      className={`max-w-[85%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
+                        msg.sender === "user" 
+                          ? "bg-violet-600 text-white rounded-br-none font-bold" 
+                          : "bg-white/[0.04] border border-white/5 text-white/80 rounded-bl-none font-medium"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Typing indicator */}
+                {isChatTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/[0.04] border border-white/5 rounded-2xl rounded-bl-none p-4 flex items-center gap-1.5">
+                      <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "100ms" }} />
+                      <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "200ms" }} />
+                      <span className="size-1.5 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <button
-                onClick={onNext}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 text-sm font-bold text-white transition hover:scale-[1.03] cursor-pointer shadow-[0_10px_30px_rgba(124,58,237,0.25)] relative z-10"
-              >
-                Open Copilot Chat
-                <ArrowRight className="size-4" />
-              </button>
+              {/* Input and quick pills */}
+              <div className="p-5 border-t border-white/8 bg-white/[0.01] space-y-4 relative z-10">
+                <div className="flex flex-col gap-2.5">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/30">Suggested Questions & Tailoring</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      disabled={usedChatPills.includes("edpuzzle") || isChatTyping}
+                      onClick={() => handleChatPillClick("edpuzzle")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 cursor-pointer ${
+                        usedChatPills.includes("edpuzzle")
+                          ? "bg-violet-500/12 border border-violet-500/20 text-violet-400 opacity-60 cursor-not-allowed"
+                          : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white"
+                      }`}
+                    >
+                      ✨ Tailor my Edpuzzle experience
+                    </button>
+
+                    <button
+                      disabled={usedChatPills.includes("evaluation") || isChatTyping}
+                      onClick={() => handleChatPillClick("evaluation")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 cursor-pointer ${
+                        usedChatPills.includes("evaluation")
+                          ? "bg-violet-500/12 border border-violet-500/20 text-violet-400 opacity-60 cursor-not-allowed"
+                          : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white"
+                      }`}
+                    >
+                      📊 How to address the AI Evaluation gap?
+                    </button>
+
+                    <button
+                      disabled={usedChatPills.includes("leadership") || isChatTyping}
+                      onClick={() => handleChatPillClick("leadership")}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition duration-300 cursor-pointer ${
+                        usedChatPills.includes("leadership")
+                          ? "bg-violet-500/12 border border-violet-500/20 text-violet-400 opacity-60 cursor-not-allowed"
+                          : "bg-white/[0.03] hover:bg-white/[0.08] border border-white/8 text-white/70 hover:text-white"
+                      }`}
+                    >
+                      💡 Highlight Staff-level leadership
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-full bg-white/[0.03] border border-white/8 p-1">
+                  <input 
+                    type="text" 
+                    readOnly
+                    placeholder="Select a suggested tailoring action above..." 
+                    className="flex-1 px-4 text-xs text-white/30 bg-transparent border-0 outline-none select-none cursor-default"
+                  />
+                  <button 
+                    disabled 
+                    className="size-8 rounded-full bg-violet-600/30 flex items-center justify-center text-white/40 cursor-not-allowed"
+                  >
+                    <ArrowRight className="size-4" />
+                  </button>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Navigation block */}
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={onNext}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 text-sm font-bold text-white transition hover:scale-[1.02] cursor-pointer"
-        >
-          Consult AI Copilot
-          <ArrowRight className="size-4" />
-        </button>
-      </div>
+
     </div>
   );
 }

@@ -252,8 +252,7 @@ export function TemplateStudioView({
           <div className="flex items-center gap-3">
             <div className="size-3.5 rounded-full bg-violet-50 animate-pulse" />
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider">AI Assistant</h4>
-              <p className="text-[10px] text-white/42 font-medium">CV Tailoring Sandbox</p>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">CV Chat Editor</h4>
             </div>
           </div>
           <button 
