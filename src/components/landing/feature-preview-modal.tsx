@@ -1,7 +1,8 @@
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Sparkles } from "lucide-react";
+import { AnimatePresence, motion, useMotionValue, animate } from "framer-motion";
+import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Sparkles, ZoomIn, ZoomOut } from "lucide-react";
 import { appUrl } from "@/lib/demo-data";
 import { AppFeature, featureColorMap } from "./landing-data";
 
@@ -23,6 +24,48 @@ export function FeaturePreviewModal({
   const currentIndex = selectedFeature
     ? allFeatures.findIndex((f) => f.id === selectedFeature.id)
     : -1;
+
+  const [isZoomed, setIsZoomed] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const [dragBounds, setDragBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
+
+  useEffect(() => {
+    setIsZoomed(false);
+    x.set(0);
+    y.set(0);
+  }, [selectedFeature, x, y]);
+
+  useEffect(() => {
+    if (!isZoomed) {
+      animate(x, 0, { type: "spring", stiffness: 300, damping: 30 });
+      animate(y, 0, { type: "spring", stiffness: 300, damping: 30 });
+    }
+  }, [isZoomed, x, y]);
+
+  useEffect(() => {
+    const updateBounds = () => {
+      if (isZoomed && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const scale = 2.2;
+        const overflowX = (rect.width * scale - rect.width) / 2;
+        const overflowY = (rect.height * scale - rect.height) / 2;
+        setDragBounds({
+          left: -overflowX,
+          right: overflowX,
+          top: -overflowY,
+          bottom: overflowY,
+        });
+      } else {
+        setDragBounds({ left: 0, right: 0, top: 0, bottom: 0 });
+      }
+    };
+
+    updateBounds();
+    window.addEventListener("resize", updateBounds);
+    return () => window.removeEventListener("resize", updateBounds);
+  }, [isZoomed, selectedFeature]);
 
   return (
     <>
@@ -79,15 +122,28 @@ export function FeaturePreviewModal({
                 </div>
 
                 <div className="relative min-h-0 flex-1 bg-[#05060a] p-2 sm:p-3 lg:p-4 group/modal">
-                  <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]">
+                  <div
+                    ref={containerRef}
+                    className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white/[0.02]"
+                  >
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={selectedFeature.id}
                         initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        animate={{ 
+                          opacity: 1,
+                          scale: isZoomed ? 2.2 : 1,
+                        }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         transition={{ duration: 0.2, ease: "easeInOut" }}
-                        className="absolute inset-0"
+                        drag={isZoomed}
+                        dragConstraints={dragBounds}
+                        dragElastic={0.05}
+                        style={{ x, y }}
+                        onTap={() => setIsZoomed(!isZoomed)}
+                        className={`absolute inset-0 flex items-center justify-center ${
+                          isZoomed ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"
+                        }`}
                       >
                         <Image
                           src={selectedFeature.screenshot}
@@ -98,9 +154,32 @@ export function FeaturePreviewModal({
                         />
                       </motion.div>
                     </AnimatePresence>
+
+                    {/* Floating Zoom Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsZoomed(!isZoomed);
+                      }}
+                      className="absolute bottom-4 right-4 z-20 flex h-10 items-center gap-2 rounded-full border border-white/10 bg-[#080910]/80 px-4 text-xs font-bold text-white/70 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-[#080910] hover:text-white hover:scale-105 active:scale-95 shadow-lg cursor-pointer"
+                      title={isZoomed ? "Zoom out" : "Zoom in"}
+                    >
+                      {isZoomed ? (
+                        <>
+                          <ZoomOut className="size-4 text-violet-400" />
+                          <span>Zoom Out</span>
+                        </>
+                      ) : (
+                        <>
+                          <ZoomIn className="size-4 text-violet-400" />
+                          <span>Zoom In</span>
+                        </>
+                      )}
+                    </button>
                   </div>
 
-                  {allFeatures.length > 1 && (
+                  {allFeatures.length > 1 && !isZoomed && (
                     <>
                       {/* Left Arrow Button */}
                       <button
@@ -133,7 +212,9 @@ export function FeaturePreviewModal({
 
                 <div className="flex flex-col gap-3 border-t border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
                   <p className="max-w-3xl text-sm font-medium leading-relaxed text-white/62">
-                    A real Fabra product screenshot, shown as-is so you can inspect the workspace and the detail behind each feature.
+                    {isZoomed 
+                      ? "Panned view: Click anywhere on the image to zoom out, or drag to explore different areas." 
+                      : "A real Fabra product screenshot. Click on the image to zoom in and drag to pan."}
                   </p>
 
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
