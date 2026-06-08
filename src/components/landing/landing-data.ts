@@ -81,6 +81,7 @@ export interface AppFeature {
   top: string;
   left: string;
   screenshot: string;
+  mobileScreenshot?: string;
 }
 
 export const APP_FEATURES: AppFeature[] = [
@@ -94,6 +95,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "5%",
     left: "5%",
     screenshot: "/screenshots/cv-ai-analysis.png",
+    mobileScreenshot: "/screenshots/mobile/cv-ai-analysis.png",
   },
   {
     id: "cv-library",
@@ -105,6 +107,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "18%",
     left: "45%",
     screenshot: "/screenshots/cv-library.png",
+    mobileScreenshot: "/screenshots/mobile/cv-library.png",
   },
   {
     id: "templates",
@@ -116,6 +119,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "8%",
     left: "75%",
     screenshot: "/screenshots/ats-friendly-cv-templates.png",
+    mobileScreenshot: "/screenshots/mobile/ats-friendly-cv-templates.png",
   },
   {
     id: "job-chat",
@@ -149,6 +153,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "45%",
     left: "48%",
     screenshot: "/screenshots/job-ai-analysis.png",
+    mobileScreenshot: "/screenshots/mobile/job-ai-analysis.png",
   },
   {
     id: "interview-questions",
@@ -160,6 +165,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "35%",
     left: "76%",
     screenshot: "/screenshots/interview-questions.png",
+    mobileScreenshot: "/screenshots/mobile/interview-questions.png",
   },
   {
     id: "public-cv-url",
@@ -171,6 +177,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "56%",
     left: "32%",
     screenshot: "/screenshots/public-cv-url.png",
+    mobileScreenshot: "/screenshots/mobile/public-cv-url.png",
   },
   {
     id: "ai-model-options",
@@ -182,6 +189,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "55%",
     left: "74%",
     screenshot: "/screenshots/ai-model-options.png",
+    mobileScreenshot: "/screenshots/mobile/ai-model-options.png",
   },
   {
     id: "job-tracking",
@@ -204,6 +212,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "70%",
     left: "8%",
     screenshot: "/screenshots/work-journal.png",
+    mobileScreenshot: "/screenshots/mobile/work-journal.png",
   },
   {
     id: "objectives",
@@ -215,6 +224,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "78%",
     left: "38%",
     screenshot: "/screenshots/work-career-objectives.png",
+    mobileScreenshot: "/screenshots/mobile/work-career-objectives.png",
   },
   {
     id: "received-feedback",
@@ -226,6 +236,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "72%",
     left: "70%",
     screenshot: "/screenshots/received-feedback.png",
+    mobileScreenshot: "/screenshots/mobile/received-feedback.png",
   },
   {
     id: "feedback-notes",
@@ -237,6 +248,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "84%",
     left: "12%",
     screenshot: "/screenshots/feedback-notes.png",
+    mobileScreenshot: "/screenshots/mobile/feedback-notes.png",
   },
 ];
 

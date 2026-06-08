@@ -6,6 +6,8 @@ import { ArrowRight, ChevronLeft, ChevronRight, ExternalLink, Sparkles, ZoomIn, 
 import { appUrl } from "@/lib/demo-data";
 import { AppFeature, featureColorMap } from "./landing-data";
 
+// Mobile screenshots are now mapped directly in APP_FEATURES inside landing-data.ts
+
 type FeaturePreviewModalProps = {
   selectedFeature: AppFeature | null;
   allFeatures: AppFeature[];
@@ -27,9 +29,11 @@ export function FeaturePreviewModal({
 
   const [isZoomed, setIsZoomed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mobileContainerRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const [dragBounds, setDragBounds] = useState({ left: 0, right: 0, top: 0, bottom: 0 });
+  const mobileScreenshot = selectedFeature?.mobileScreenshot || selectedFeature?.screenshot || "";
 
   useEffect(() => {
     setIsZoomed(false);
@@ -46,8 +50,9 @@ export function FeaturePreviewModal({
 
   useEffect(() => {
     const updateBounds = () => {
-      if (isZoomed && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
+      const activeContainer = window.innerWidth < 640 ? mobileContainerRef.current : containerRef.current;
+      if (isZoomed && activeContainer) {
+        const rect = activeContainer.getBoundingClientRect();
         const scale = 2.2;
         const overflowX = (rect.width * scale - rect.width) / 2;
         const overflowY = (rect.height * scale - rect.height) / 2;
@@ -72,7 +77,7 @@ export function FeaturePreviewModal({
       {/* Screenshot detail modal */}
       <AnimatePresence>
         {selectedFeature && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 lg:p-5 select-none">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4 lg:p-5 select-none">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -82,13 +87,85 @@ export function FeaturePreviewModal({
               className="absolute inset-0 bg-[#06070a]/92 backdrop-blur-md cursor-zoom-out"
             />
 
-            {/* Modal Card */}
+            {/* Mobile image viewer */}
+            <motion.div
+              ref={mobileContainerRef}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              className="relative z-10 h-[100dvh] w-screen overflow-hidden bg-black sm:hidden"
+            >
+              <motion.div
+                key={mobileScreenshot}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, scale: isZoomed ? 2.2 : 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                drag={isZoomed}
+                dragConstraints={dragBounds}
+                dragElastic={0.05}
+                style={{ x, y }}
+                onTap={() => setIsZoomed(!isZoomed)}
+                className={`absolute inset-0 ${isZoomed ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"}`}
+              >
+                <Image
+                  src={mobileScreenshot}
+                  alt={selectedFeature.mobileScreenshot 
+                    ? `${selectedFeature.title} mobile app screenshot` 
+                    : `${selectedFeature.title} real app screenshot`}
+                  fill
+                  sizes="100vw"
+                  className="pointer-events-none select-none object-contain"
+                />
+              </motion.div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close screenshot"
+                className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/65 text-xl text-white backdrop-blur-md"
+              >
+                ×
+              </button>
+
+              {!isZoomed && allFeatures.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={onPrev}
+                    aria-label="Previous screenshot"
+                    className="absolute left-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white backdrop-blur-md"
+                  >
+                    <ChevronLeft className="size-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    aria-label="Next screenshot"
+                    className="absolute right-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white backdrop-blur-md"
+                  >
+                    <ChevronRight className="size-6" />
+                  </button>
+                </>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setIsZoomed(!isZoomed)}
+                aria-label={isZoomed ? "Zoom out" : "Zoom in"}
+                className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-20 flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white backdrop-blur-md"
+              >
+                {isZoomed ? <ZoomOut className="size-5" /> : <ZoomIn className="size-5" />}
+              </button>
+            </motion.div>
+
+            {/* Desktop modal card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", duration: 0.5, bounce: 0.2 }}
-              className="relative z-10 flex h-[calc(100dvh-1.5rem)] w-full max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#080910]/95 shadow-[0_32px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl animate-fade-in sm:h-[calc(100dvh-2rem)] sm:max-w-[calc(100vw-2rem)] lg:h-[calc(100dvh-2.5rem)] lg:max-w-[calc(100vw-2.5rem)]"
+              className="relative z-10 hidden h-[calc(100dvh-2rem)] w-full max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#080910]/95 shadow-[0_32px_100px_rgba(0,0,0,0.72)] backdrop-blur-2xl animate-fade-in sm:flex lg:h-[calc(100dvh-2.5rem)] lg:max-w-[calc(100vw-2.5rem)]"
             >
               <div className="flex min-h-0 flex-1 flex-col">
                 <div className="flex flex-col gap-4 border-b border-white/10 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between lg:px-6">
