@@ -634,6 +634,7 @@ export function LandingExperience() {
         cardRefs={cardRefs}
         letterRefs={letterRefs}
         hoveredRef={hoveredRef}
+        bubblesRef={bubblesRef}
         onFeatureSelect={setSelectedFeature}
       />
 

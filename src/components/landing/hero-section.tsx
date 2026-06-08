@@ -1,9 +1,9 @@
-import type React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 import { appUrl } from "@/lib/demo-data";
-import { APP_FEATURES, AppFeature, featureColorMap } from "./landing-data";
+import { APP_FEATURES, AppFeature, featureColorMap, PhysicsBubble } from "./landing-data";
 import { FabraLogo } from "./fabra-logo";
 
 type HeroSectionProps = {
@@ -12,10 +12,144 @@ type HeroSectionProps = {
   cardRefs: React.RefObject<(HTMLButtonElement | null)[]>;
   letterRefs: React.RefObject<(HTMLSpanElement | null)[]>;
   hoveredRef: React.RefObject<string | null>;
+  bubblesRef: React.RefObject<PhysicsBubble[]>;
   onFeatureSelect: (feature: AppFeature) => void;
 };
 
-export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef, onFeatureSelect }: HeroSectionProps) {
+export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef, bubblesRef, onFeatureSelect }: HeroSectionProps) {
+  const [hoveredFeature, setHoveredFeature] = useState<AppFeature | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<{
+    left: number | string;
+    right: number | string;
+    top: number | string;
+    bottom: number | string;
+    translateX: string;
+    tipStyle: React.CSSProperties;
+  } | null>(null);
+
+  const handleMouseEnter = (feature: AppFeature, event: React.MouseEvent<HTMLButtonElement>) => {
+    hoveredRef.current = feature.id;
+    setHoveredFeature(feature);
+    
+    const container = heroRef.current;
+    if (!container) return;
+    const containerRect = container.getBoundingClientRect();
+    const button = event.currentTarget;
+    const buttonRect = button.getBoundingClientRect();
+
+    // Viewport-relative centers
+    const viewportCenterX = buttonRect.left + buttonRect.width / 2;
+    const viewportCenterY = buttonRect.top + buttonRect.height / 2;
+
+    // Container-relative coordinates derived from the actual (scaled) rect so
+    // the popover and tip align with the card as it is rendered on screen.
+    const buttonCenterX = viewportCenterX - containerRect.left;
+    const buttonCenterY = viewportCenterY - containerRect.top;
+
+    const buttonTop = buttonRect.top - containerRect.top;
+    const buttonBottom = buttonRect.bottom - containerRect.top;
+    
+    // Calculate spaces relative to the viewport
+    const spaceAboveViewport = buttonRect.top;
+    const spaceBelowViewport = window.innerHeight - buttonRect.bottom;
+    
+    // Determine vertical position:
+    // The popover is ~610px tall including margins. Let's check which side has enough space, or default to the one with more space.
+    const popoverHeight = 610;
+    let verticalPosition: "top" | "bottom" = "top";
+    if (spaceAboveViewport >= popoverHeight) {
+      verticalPosition = "top";
+    } else if (spaceBelowViewport >= popoverHeight) {
+      verticalPosition = "bottom";
+    } else {
+      verticalPosition = spaceAboveViewport >= spaceBelowViewport ? "top" : "bottom";
+    }
+    
+    let popoverLeft: number | string = "auto";
+    let popoverRight: number | string = "auto";
+    let popoverTop: number | string = "auto";
+    let popoverBottom: number | string = "auto";
+    let translateX = "0%";
+    let tipStyle: React.CSSProperties = {};
+    
+    // Horizontal alignment relative to the viewport/screen (960px width = 480px left/right from center)
+    const margin = 16;
+    if (viewportCenterX - 480 < margin) {
+      // Too close to left of viewport: align left edge of popover with margin relative to container
+      const containerLeftMargin = margin - containerRect.left;
+      popoverLeft = containerLeftMargin;
+      translateX = "0%";
+      
+      // Calculate tip position centered under/over the button
+      const tipLeft = viewportCenterX - containerRect.left - containerLeftMargin;
+      tipStyle = {
+        left: `${tipLeft}px`,
+        transform: "translateX(-50%) rotate(45deg)",
+      };
+    } else if (window.innerWidth - viewportCenterX - 480 < margin) {
+      // Too close to right of viewport: align right edge of popover with margin relative to container
+      const containerRightMargin = margin - (window.innerWidth - containerRect.right);
+      popoverRight = containerRightMargin;
+      translateX = "0%";
+      
+      // Calculate tip position centered under/over the button
+      const tipRight = (containerRect.right - viewportCenterX) - containerRightMargin;
+      tipStyle = {
+        right: `${tipRight}px`,
+        left: "auto",
+        transform: "translateX(50%) rotate(45deg)",
+      };
+    } else {
+      // Centered relative to the button
+      popoverLeft = buttonCenterX;
+      translateX = "-50%";
+      tipStyle = {
+        left: "50%",
+        transform: "translateX(-50%) rotate(45deg)",
+      };
+    }
+    
+    // Apply vertical position:
+    if (verticalPosition === "bottom") {
+      popoverTop = buttonBottom + 16;
+      tipStyle = {
+        ...tipStyle,
+        bottom: "auto",
+        top: "-5px",
+        borderTop: "1px solid rgba(255, 255, 255, 0.15)",
+        borderLeft: "1px solid rgba(255, 255, 255, 0.15)",
+        borderRight: "none",
+        borderBottom: "none",
+      };
+    } else {
+      popoverBottom = containerRect.height - buttonTop + 16;
+      tipStyle = {
+        ...tipStyle,
+        top: "auto",
+        bottom: "-5px",
+        borderRight: "1px solid rgba(255, 255, 255, 0.15)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.15)",
+        borderTop: "none",
+        borderLeft: "none",
+      };
+    }
+    
+    setPopoverPosition({
+      left: typeof popoverLeft === "number" ? Math.round(popoverLeft) : popoverLeft,
+      right: typeof popoverRight === "number" ? Math.round(popoverRight) : popoverRight,
+      top: typeof popoverTop === "number" ? Math.round(popoverTop) : popoverTop,
+      bottom: typeof popoverBottom === "number" ? Math.round(popoverBottom) : popoverBottom,
+      translateX,
+      tipStyle,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    hoveredRef.current = null;
+    setHoveredFeature(null);
+    setPopoverPosition(null);
+  };
+
   return (
     <section className="relative flex min-h-[100svh] items-center px-5 pt-32 pb-16 sm:px-8 lg:px-12 snap-start snap-always animate-fade-in" id="top" ref={heroRef}>
       <div className="absolute inset-0 -z-10 soft-grid opacity-35" />
@@ -124,17 +258,17 @@ export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef
       </div>
 
       {/* Floating Cards (Desktop only - Behind title "FABRA" but in front of rest of content) */}
-      <div className="absolute inset-0 z-20 overflow-hidden pointer-events-none hidden lg:block select-none">
+      <div className="absolute inset-0 z-20 hover:z-40 pointer-events-none hidden lg:block select-none">
         {APP_FEATURES.map((feature, index) => {
           const styles = featureColorMap[feature.color];
           return (
             <button
               key={feature.id}
               ref={(el) => { cardRefs.current[index] = el; }}
-              onMouseEnter={() => { hoveredRef.current = feature.id; }}
-              onMouseLeave={() => { hoveredRef.current = null; }}
+              onMouseEnter={(e) => handleMouseEnter(feature, e)}
+              onMouseLeave={handleMouseLeave}
               onClick={() => onFeatureSelect(feature)}
-              className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-[background,border,box-shadow,opacity] duration-300 pointer-events-auto w-[230px] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] z-[20]`}
+              className={`absolute p-3 rounded-2xl glass flex items-center gap-3 cursor-pointer text-left border ${styles.border} ${styles.bg} ${styles.glow} transition-[background,border,box-shadow,opacity] duration-300 pointer-events-auto w-[230px] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:z-[60] z-[20]`}
               style={{ top: feature.top, left: feature.left }}
             >
               <div className={`p-2.5 rounded-xl border ${styles.bg} ${styles.border} ${styles.text} flex items-center justify-center shrink-0`}>
@@ -147,6 +281,38 @@ export function HeroSection({ heroRef, logoRef, cardRefs, letterRefs, hoveredRef
           );
         })}
       </div>
+
+      {/* Dynamic Popover Portal rendered outside of compositor transform layers */}
+      <AnimatePresence>
+        {hoveredFeature && popoverPosition && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: popoverPosition.top !== "auto" ? 12 : -12, x: popoverPosition.translateX }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: popoverPosition.translateX }}
+            exit={{ opacity: 0, scale: 0.95, y: popoverPosition.top !== "auto" ? 12 : -12, x: popoverPosition.translateX }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute w-[960px] rounded-2xl border border-white/15 bg-[#0c0d12]/95 p-1.5 backdrop-blur-md shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-[99] pointer-events-none"
+            style={{
+              left: popoverPosition.left,
+              right: popoverPosition.right,
+              top: popoverPosition.top,
+              bottom: popoverPosition.bottom,
+            }}
+          >
+            <div className="relative rounded-xl overflow-hidden border border-white/5 bg-black/20">
+              <img
+                src={hoveredFeature.screenshot}
+                alt={hoveredFeature.title}
+                className="w-full h-auto object-cover select-none pointer-events-none"
+              />
+            </div>
+            {/* Tip arrow */}
+            <div 
+              className="popover-tip absolute w-2.5 h-2.5 bg-[#0c0d12]" 
+              style={popoverPosition.tipStyle}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
