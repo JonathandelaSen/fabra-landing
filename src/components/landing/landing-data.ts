@@ -1,4 +1,5 @@
 import type React from "react";
+import { FEATURE_IDS, FLOW_TABS } from "@/lib/constants";
 import {
   Briefcase,
   Bot,
@@ -16,25 +17,13 @@ import {
   Trophy,
 } from "lucide-react";
 
-export type FlowStep =
-  | "idle"
-  | "uploading"
-  | "ready"
-  | "loading"
-  | "analysis"
-  | "templates"
-  | "studio"
-  | "completion"
-  | "job-loading"
-  | "job-analysis"
-  | "job-chat"
-  | "job-tracking";
+export type { FlowStep } from "@/lib/constants";
 
 export const stepper = [
-  { key: "upload", label: "Upload CV" },
-  { key: "analysis", label: "AI analysis" },
-  { key: "studio", label: "Template Studio" },
-  { key: "match", label: "Job Match" },
+  { key: FLOW_TABS.UPLOAD, label: "Upload CV" },
+  { key: FLOW_TABS.ANALYSIS, label: "AI analysis" },
+  { key: FLOW_TABS.STUDIO, label: "Template Studio" },
+  { key: FLOW_TABS.MATCH, label: "Job Match" },
 ] as const;
 
 export const keywords = [
@@ -86,7 +75,7 @@ export interface AppFeature {
 
 export const APP_FEATURES: AppFeature[] = [
   {
-    id: "cv-analyses",
+    id: FEATURE_IDS.CV_ANALYSES,
     title: "CV AI Analysis",
     teaser: "Diagnóstico inteligente de tu perfil profesional",
     description: "Analiza tu currículum con IA para identificar puntos fuertes, áreas de mejora clave, legibilidad para herramientas ATS y densidad de palabras clave adaptadas a tu sector laboral.",
@@ -98,7 +87,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/cv-ai-analysis.png",
   },
   {
-    id: "cv-library",
+    id: FEATURE_IDS.CV_LIBRARY,
     title: "CV Library",
     teaser: "Historial y versiones optimizadas en un solo lugar",
     description: "Mantén todas las versiones de tu CV organizadas y accesibles. Compara versiones anteriores, recupera secciones y realiza un seguimiento de los cambios aplicados en tu historial.",
@@ -110,7 +99,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/cv-library.png",
   },
   {
-    id: "templates",
+    id: FEATURE_IDS.TEMPLATES,
     title: "ATS-friendly CV templates",
     teaser: "Diseños profesionales de alto impacto visual",
     description: "Exporta tu perfil en plantillas elegantes y validadas por reclutadores como Linea, Marco, Pulso o Filo, ajustando los colores y la estructura de forma instantánea.",
@@ -122,7 +111,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/ats-friendly-cv-templates.png",
   },
   {
-    id: "job-chat",
+    id: FEATURE_IDS.JOB_CHAT,
     title: "Job AI Chat",
     teaser: "Prepara tu candidatura y chatea sobre el puesto",
     description: "Chatea con la IA para analizar los requisitos de la oferta de empleo, resolver dudas específicas y ajustar tu posicionamiento profesional.",
@@ -131,9 +120,10 @@ export const APP_FEATURES: AppFeature[] = [
     top: "24%",
     left: "22%",
     screenshot: "/screenshots/job-ai-chat.png",
+    mobileScreenshot: "/screenshots/mobile/job-ai-chat.png",
   },
   {
-    id: "cv-editor",
+    id: FEATURE_IDS.CV_EDITOR,
     title: "CV AI Editor",
     teaser: "Tu centro de control laboral a largo plazo",
     description: "Define tu rumbo profesional. Consolida toda tu experiencia laboral, feedback formal, proyectos destacados y objetivos de crecimiento en un espacio personal único y privado.",
@@ -142,9 +132,10 @@ export const APP_FEATURES: AppFeature[] = [
     top: "32%",
     left: "10%",
     screenshot: "/screenshots/cv-ai-editor.png",
+    mobileScreenshot: "/screenshots/mobile/cv-ai-editor.png",
   },
   {
-    id: "job-analyses",
+    id: FEATURE_IDS.JOB_ANALYSES,
     title: "Job AI Analysis",
     teaser: "Mide tu compatibilidad con cada puesto",
     description: "Compara tu currículum directamente con la descripción de una oferta de empleo para obtener tu puntuación de afinidad, identificar requisitos faltantes y ajustar tu CV.",
@@ -156,7 +147,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/job-ai-analysis.png",
   },
   {
-    id: "interview-questions",
+    id: FEATURE_IDS.INTERVIEW_QUESTIONS,
     title: "Interview questions",
     teaser: "Prepárate con cuestionarios personalizados por IA",
     description: "Genera preguntas de entrevista basadas en la oferta que te interesa y practica tus respuestas con el feedback y consejos de posicionamiento de nuestro copiloto de IA.",
@@ -168,7 +159,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/interview-questions.png",
   },
   {
-    id: "public-cv-url",
+    id: FEATURE_IDS.PUBLIC_CV_URL,
     title: "Public CV URL",
     teaser: "Comparte tu CV público con un enlace propio",
     description: "Publica una versión cuidada de tu CV en una URL accesible para reclutadores, clientes o contactos, manteniendo el control sobre qué versión enseñas.",
@@ -180,7 +171,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/public-cv-url.png",
   },
   {
-    id: "ai-model-options",
+    id: FEATURE_IDS.AI_MODEL_OPTIONS,
     title: "AI model options",
     teaser: "Elige cómo quieres ejecutar el análisis",
     description: "Trabaja con un modelo local, conecta un proveedor de IA por API o pega resultados de una herramienta externa cuando prefieras mantener el análisis fuera de Fabra.",
@@ -192,7 +183,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/ai-model-options.png",
   },
   {
-    id: "job-tracking",
+    id: FEATURE_IDS.JOB_TRACKING,
     title: "Job Search Tracking",
     teaser: "Gestiona tus ofertas de empleo en un tablero visual",
     description: "Organiza tu búsqueda de trabajo de forma eficiente. Clasifica tus candidaturas por fases de selección, añade notas y mantén el control de tus procesos.",
@@ -203,7 +194,7 @@ export const APP_FEATURES: AppFeature[] = [
     screenshot: "/screenshots/job-search-tracking-kanban.png",
   },
   {
-    id: "work-journal",
+    id: FEATURE_IDS.WORK_JOURNAL,
     title: "Work Journal",
     teaser: "Registra tus logros y hitos del día a día",
     description: "Anota tus victorias diarias, proyectos finalizados e hitos importantes. Convierte este historial en evidencias de valor para tus revisiones de desempeño y actualizaciones de CV.",
@@ -215,7 +206,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/work-journal.png",
   },
   {
-    id: "objectives",
+    id: FEATURE_IDS.OBJECTIVES,
     title: "Work career objectives",
     teaser: "Planifica y alcanza tus metas de desarrollo",
     description: "Establece metas profesionales a corto y largo plazo. Vincula tus actividades diarias y la retroalimentación recibida para avanzar de forma constante hacia tu próximo gran paso.",
@@ -227,7 +218,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/work-career-objectives.png",
   },
   {
-    id: "received-feedback",
+    id: FEATURE_IDS.RECEIVED_FEEDBACK,
     title: "Received feedback",
     teaser: "Centraliza las valoraciones de tu equipo",
     description: "Guarda la retroalimentación formal e informal de tus compañeros, mánagers y clientes para extraer señales claras de tus fortalezas y aspectos a mejorar.",
@@ -239,7 +230,7 @@ export const APP_FEATURES: AppFeature[] = [
     mobileScreenshot: "/screenshots/mobile/received-feedback.png",
   },
   {
-    id: "feedback-notes",
+    id: FEATURE_IDS.FEEDBACK_NOTES,
     title: "Feedback notes",
     teaser: "Reflexiones y planes de acción personales",
     description: "Analiza el feedback recibido y documenta planes de acción concretos, notas de reuniones de desarrollo y estrategias para potenciar tus habilidades clave.",

@@ -5,78 +5,79 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Check, FileText, Loader2, Sparkles, Star, Trophy } from "lucide-react";
 import { cvAnalysis, profile } from "@/lib/demo-data";
 import { ScoreRing } from "./job-match-analysis-flow";
-import { FlowStep, keywords, stepper } from "./landing-data";
+import { FLOW_STEPS, FLOW_TABS, type FlowStep, type FlowTab } from "@/lib/constants";
+import { keywords, stepper } from "./landing-data";
 
 export function GuideBanner({ step }: { step: FlowStep }) {
   const getGuideContent = () => {
     switch (step) {
-      case "idle":
+      case FLOW_STEPS.IDLE:
         return {
           badge: "01 · SANDBOX SIMULATION",
           title: "Simulate loading a sample profile",
           glowColor: "139, 92, 246", // violet
         };
-      case "uploading":
+      case FLOW_STEPS.UPLOADING:
         return {
           badge: "02 · PARSING DATA",
           title: "Extracting career history...",
           glowColor: "236, 72, 153", // fuchsia
         };
-      case "ready":
+      case FLOW_STEPS.READY:
         return {
           badge: "03 · PARSE COMPLETE",
           title: "CV successfully parsed into workspace",
           glowColor: "16, 185, 129", // emerald
         };
-      case "loading":
+      case FLOW_STEPS.LOADING:
         return {
           badge: "04 · AI EVALUATION",
           title: "Running AI analysis...",
           glowColor: "245, 158, 11", // amber
         };
-      case "analysis":
+      case FLOW_STEPS.ANALYSIS:
         return {
           badge: "05 · FINAL DIAGNOSIS",
           title: "Strategic diagnostic report generated!",
           glowColor: "234, 179, 8", // yellow
         };
-      case "templates":
+      case FLOW_STEPS.TEMPLATES:
         return {
           badge: "06 · TEMPLATE STUDIO",
           title: "Select your preferred layout template",
           glowColor: "99, 102, 241", // indigo
         };
-      case "studio":
+      case FLOW_STEPS.STUDIO:
         return {
           badge: "07 · DYNAMIC TAILORING",
           title: "Use conversational prompts to polish your CV",
           glowColor: "168, 85, 247", // purple
         };
-      case "completion":
+      case FLOW_STEPS.COMPLETION:
         return {
           badge: "08 · CV READY",
           title: "Your optimized CV is ready!",
           glowColor: "16, 185, 129", // emerald
         };
-      case "job-loading":
+      case FLOW_STEPS.JOB_LOADING:
         return {
           badge: "09 · COMPARING ROLES",
           title: "Matching profile to Staff Software Engineer...",
           glowColor: "124, 58, 237", // violet
         };
-      case "job-analysis":
+      case FLOW_STEPS.JOB_ANALYSIS:
         return {
           badge: "10 · MATCH DIAGNOSIS",
           title: "Alignment Score: 84/100 · Strong Match",
           glowColor: "99, 102, 241", // indigo
         };
-      case "job-chat":
+      case FLOW_STEPS.JOB_CHAT:
         return {
           badge: "11 · AI COACHING",
           title: "Consulting Fabra Copilot on positioning",
           glowColor: "168, 85, 247", // purple
         };
-      case "job-tracking":
+      case FLOW_STEPS.JOB_TRACKING:
         return {
           badge: "12 · OPPORTUNITY TRACKING",
           title: "Position added to pipeline & moving toward Interview Prep",
@@ -200,15 +201,15 @@ export function FlowHeader({
   onTabClick,
 }: {
   current: FlowStep;
-  onTabClick: (key: "upload" | "analysis" | "studio" | "match") => void;
+  onTabClick: (key: FlowTab) => void;
 }) {
-  const activeIndex = 
-    current === "idle" || current === "uploading" || current === "ready" ? 0 : 
-    current === "loading" || current === "analysis" ? 1 : 
-    current === "templates" || current === "studio" ? 2 :
+  const activeIndex =
+    current === FLOW_STEPS.IDLE || current === FLOW_STEPS.UPLOADING || current === FLOW_STEPS.READY ? 0 :
+    current === FLOW_STEPS.LOADING || current === FLOW_STEPS.ANALYSIS ? 1 :
+    current === FLOW_STEPS.TEMPLATES || current === FLOW_STEPS.STUDIO ? 2 :
     3;
-  const canNavigateToAnalysis = current !== "idle" && current !== "uploading";
-  const canNavigateToMatch = current === "completion";
+  const canNavigateToAnalysis = current !== FLOW_STEPS.IDLE && current !== FLOW_STEPS.UPLOADING;
+  const canNavigateToMatch = current === FLOW_STEPS.COMPLETION;
 
   return (
     <div className="flex flex-col items-center w-full max-w-2xl mx-auto mb-6">
@@ -300,7 +301,7 @@ export function UploadExperience({
   onStartUpload: () => void;
   onAnalyze: () => void;
 }) {
-  const ready = step === "ready";
+  const ready = step === FLOW_STEPS.READY;
 
   if (ready) {
     return (
@@ -357,9 +358,9 @@ export function UploadExperience({
       >
         <div className="absolute inset-10 -z-10 rounded-[2.5rem] bg-violet-500/10 blur-3xl" />
         
-        <UploadDropzone ready={false} uploading={step === "uploading"} />
-        
-        {step === "idle" && (
+        <UploadDropzone ready={false} uploading={step === FLOW_STEPS.UPLOADING} />
+
+        {step === FLOW_STEPS.IDLE && (
           <button
             type="button"
             onClick={onStartUpload}

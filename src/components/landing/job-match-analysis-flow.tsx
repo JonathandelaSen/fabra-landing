@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Briefcase, Check, ClipboardList, ExternalLink, HelpCircle, Loader2, MessageSquare, Sparkles, Target } from "lucide-react";
 import { job } from "@/lib/demo-data";
-import { FlowStep } from "./landing-data";
+import { FLOW_STEPS, type FlowStep } from "@/lib/constants";
 
 export function JobMatchFlowHeader({
   current,
@@ -16,15 +16,15 @@ export function JobMatchFlowHeader({
   onBackToCV: () => void;
 }) {
   const steps = [
-    { key: "job-analysis", label: "Job Analysis" },
-    { key: "job-chat", label: "AI Chat" },
-    { key: "job-tracking", label: "Job Tracking" },
+    { key: FLOW_STEPS.JOB_ANALYSIS, label: "Job Analysis" },
+    { key: FLOW_STEPS.JOB_CHAT, label: "AI Chat" },
+    { key: FLOW_STEPS.JOB_TRACKING, label: "Job Tracking" },
   ] as const;
 
   const activeIndex =
-    current === "job-loading" || current === "job-analysis" ? 0 :
-    current === "job-chat" ? 1 :
-    current === "job-tracking" ? 2 :
+    current === FLOW_STEPS.JOB_LOADING || current === FLOW_STEPS.JOB_ANALYSIS ? 0 :
+    current === FLOW_STEPS.JOB_CHAT ? 1 :
+    current === FLOW_STEPS.JOB_TRACKING ? 2 :
     0;
 
   return (
@@ -53,7 +53,7 @@ export function JobMatchFlowHeader({
           const isActive = index === activeIndex;
           const isCompleted = index < activeIndex;
 
-          const isClickable = current !== "job-loading";
+          const isClickable = current !== FLOW_STEPS.JOB_LOADING;
 
           return (
             <button

@@ -6,11 +6,12 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { FeaturePreviewModal } from "./feature-preview-modal";
 import { FlowSection } from "./flow-section";
-import { APP_FEATURES, AppFeature, FlowStep } from "./landing-data";
+import { FLOW_STEPS, FLOW_TABS, type FlowStep, type FlowTab } from "@/lib/constants";
+import { APP_FEATURES, AppFeature } from "./landing-data";
 
 export function DemoExperience() {
   const router = useRouter();
-  const [step, setStep] = useState<FlowStep>("idle");
+  const [step, setStep] = useState<FlowStep>(FLOW_STEPS.IDLE);
   const [selectedFeature, setSelectedFeature] = useState<AppFeature | null>(null);
   const flowRef = useRef<HTMLElement | null>(null);
   const analyzeTimerRef = useRef<number | null>(null);
@@ -23,23 +24,23 @@ export function DemoExperience() {
   const [isSuggestionsApplied, setIsSuggestionsApplied] = useState(false);
 
   useEffect(() => {
-    if (step !== "uploading") return;
+    if (step !== FLOW_STEPS.UPLOADING) return;
 
-    const timer = window.setTimeout(() => setStep("ready"), 1500);
+    const timer = window.setTimeout(() => setStep(FLOW_STEPS.READY), 1500);
     return () => window.clearTimeout(timer);
   }, [step]);
 
   // Scroll back to top when advancing to a new step
   useEffect(() => {
-    const stepsToScroll = [
-      "analysis",
-      "templates",
-      "studio",
-      "completion",
-      "job-loading",
-      "job-analysis",
-      "job-chat",
-      "job-tracking",
+    const stepsToScroll: FlowStep[] = [
+      FLOW_STEPS.ANALYSIS,
+      FLOW_STEPS.TEMPLATES,
+      FLOW_STEPS.STUDIO,
+      FLOW_STEPS.COMPLETION,
+      FLOW_STEPS.JOB_LOADING,
+      FLOW_STEPS.JOB_ANALYSIS,
+      FLOW_STEPS.JOB_CHAT,
+      FLOW_STEPS.JOB_TRACKING,
     ];
     if (stepsToScroll.includes(step)) {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -81,9 +82,9 @@ export function DemoExperience() {
     if (analyzeTimerRef.current) {
       window.clearTimeout(analyzeTimerRef.current);
     }
-    setStep("loading");
+    setStep(FLOW_STEPS.LOADING);
     analyzeTimerRef.current = window.setTimeout(() => {
-      setStep("analysis");
+      setStep(FLOW_STEPS.ANALYSIS);
       analyzeTimerRef.current = null;
     }, 3800);
   };
@@ -95,31 +96,31 @@ export function DemoExperience() {
     setIsSuggestionsApplied(false);
   };
 
-  const handleTabClick = (tabKey: "upload" | "analysis" | "studio" | "match") => {
+  const handleTabClick = (tabKey: FlowTab) => {
     resetStudioStates();
-    if (tabKey === "upload") {
-      if (step === "analysis" || step === "loading" || step === "templates" || step === "studio" || step === "completion") {
-        setStep("ready");
+    if (tabKey === FLOW_TABS.UPLOAD) {
+      if (step === FLOW_STEPS.ANALYSIS || step === FLOW_STEPS.LOADING || step === FLOW_STEPS.TEMPLATES || step === FLOW_STEPS.STUDIO || step === FLOW_STEPS.COMPLETION) {
+        setStep(FLOW_STEPS.READY);
       } else {
-        setStep("idle");
+        setStep(FLOW_STEPS.IDLE);
       }
-    } else if (tabKey === "analysis") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
+    } else if (tabKey === FLOW_TABS.ANALYSIS) {
+      if (step === FLOW_STEPS.READY || step === FLOW_STEPS.ANALYSIS || step === FLOW_STEPS.TEMPLATES || step === FLOW_STEPS.STUDIO || step === FLOW_STEPS.COMPLETION) {
         if (analyzeTimerRef.current) {
           window.clearTimeout(analyzeTimerRef.current);
         }
-        setStep("loading");
+        setStep(FLOW_STEPS.LOADING);
         analyzeTimerRef.current = window.setTimeout(() => {
-          setStep("analysis");
+          setStep(FLOW_STEPS.ANALYSIS);
           analyzeTimerRef.current = null;
         }, 3800);
       }
-    } else if (tabKey === "studio") {
-      if (step === "ready" || step === "analysis" || step === "templates" || step === "studio" || step === "completion") {
-        setStep("templates");
+    } else if (tabKey === FLOW_TABS.STUDIO) {
+      if (step === FLOW_STEPS.READY || step === FLOW_STEPS.ANALYSIS || step === FLOW_STEPS.TEMPLATES || step === FLOW_STEPS.STUDIO || step === FLOW_STEPS.COMPLETION) {
+        setStep(FLOW_STEPS.TEMPLATES);
       }
-    } else if (tabKey === "match") {
-      if (step === "completion") {
+    } else if (tabKey === FLOW_TABS.MATCH) {
+      if (step === FLOW_STEPS.COMPLETION) {
         // Already at completion, do nothing
       }
     }

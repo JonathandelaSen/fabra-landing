@@ -6,7 +6,8 @@ import { ArrowRight, Image as ImageIcon } from "lucide-react";
 import { AnalysisExperience, FlowHeader, GuideBanner, LoadingExperience, UploadExperience } from "./flow-common";
 import { JobMatchAnalysisView, JobMatchFlowHeader, JobMatchLoadingExperience } from "./job-match-analysis-flow";
 import { JobMatchChatView, JobMatchTrackingView } from "./job-match-followup-flow";
-import { APP_FEATURES, AppFeature, FlowStep } from "./landing-data";
+import { FLOW_STEPS, type FlowStep, type FlowTab } from "@/lib/constants";
+import { APP_FEATURES, AppFeature } from "./landing-data";
 import { CompletionExperience, TemplateSelectionView, TemplateStudioView } from "./template-completion-flow";
 
 type FlowSectionProps = {
@@ -17,7 +18,7 @@ type FlowSectionProps = {
   skillsPosition: "bottom" | "top";
   isSummaryCondensed: boolean;
   isSuggestionsApplied: boolean;
-  onTabClick: (tabKey: "upload" | "analysis" | "studio" | "match") => void;
+  onTabClick: (tabKey: FlowTab) => void;
   onStepChange: React.Dispatch<React.SetStateAction<FlowStep>>;
   onAnalyze: () => void;
   onResetStudioStates: () => void;
@@ -51,18 +52,18 @@ export function FlowSection({
   return (
     <section ref={flowRef} id="flow" className="min-h-[100svh] px-5 py-20 sm:px-8 lg:px-12 snap-start snap-always">
         <div className="mx-auto max-w-7xl">
-          {["job-loading", "job-analysis", "job-chat", "job-tracking"].includes(step) ? (
+          {([FLOW_STEPS.JOB_LOADING, FLOW_STEPS.JOB_ANALYSIS, FLOW_STEPS.JOB_CHAT, FLOW_STEPS.JOB_TRACKING] as FlowStep[]).includes(step) ? (
             <JobMatchFlowHeader
               current={step}
               onStepChange={(newStep) => onStepChange(newStep)}
-              onBackToCV={() => onStepChange("completion")}
+              onBackToCV={() => onStepChange(FLOW_STEPS.COMPLETION)}
             />
           ) : (
             <FlowHeader current={step} onTabClick={onTabClick} />
           )}
           <GuideBanner step={step} />
           <AnimatePresence mode="wait" initial={false}>
-            {step === "analysis" ? (
+            {step === FLOW_STEPS.ANALYSIS ? (
               <motion.div
                 key="analysis"
                 initial={false}
@@ -71,9 +72,9 @@ export function FlowSection({
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-8"
               >
-                <AnalysisExperience onImprove={() => onStepChange("templates")} />
+                <AnalysisExperience onImprove={() => onStepChange(FLOW_STEPS.TEMPLATES)} />
               </motion.div>
-            ) : step === "templates" ? (
+            ) : step === FLOW_STEPS.TEMPLATES ? (
               <motion.div
                 key="templates"
                 initial={false}
@@ -85,10 +86,10 @@ export function FlowSection({
                 <TemplateSelectionView onSelectTemplate={(tpl) => {
                   onSelectedTemplateChange(tpl);
                   onResetStudioStates();
-                  onStepChange("studio");
+                  onStepChange(FLOW_STEPS.STUDIO);
                 }} />
               </motion.div>
-            ) : step === "studio" ? (
+            ) : step === FLOW_STEPS.STUDIO ? (
               <motion.div
                 key="studio"
                 initial={false}
@@ -102,9 +103,9 @@ export function FlowSection({
                   template={selectedTemplate}
                   onChangeTemplate={() => {
                     onResetStudioStates();
-                    onStepChange("templates");
+                    onStepChange(FLOW_STEPS.TEMPLATES);
                   }}
-                  onFinalize={() => onStepChange("completion")}
+                  onFinalize={() => onStepChange(FLOW_STEPS.COMPLETION)}
                   accentColor={accentColor}
                   setAccentColor={onAccentColorChange}
                   skillsPosition={skillsPosition}
@@ -115,7 +116,7 @@ export function FlowSection({
                   setIsSuggestionsApplied={onSuggestionsAppliedChange}
                 />
               </motion.div>
-            ) : step === "completion" ? (
+            ) : step === FLOW_STEPS.COMPLETION ? (
               <motion.div
                 key="completion"
                 initial={false}
@@ -130,10 +131,10 @@ export function FlowSection({
                   skillsPosition={skillsPosition}
                   isSummaryCondensed={isSummaryCondensed}
                   isSuggestionsApplied={isSuggestionsApplied}
-                  onStartJobMatch={() => onStepChange("job-loading")}
+                  onStartJobMatch={() => onStepChange(FLOW_STEPS.JOB_LOADING)}
                 />
               </motion.div>
-            ) : step === "job-loading" ? (
+            ) : step === FLOW_STEPS.JOB_LOADING ? (
               <motion.div
                 key="job-loading"
                 initial={false}
@@ -142,9 +143,9 @@ export function FlowSection({
                 transition={{ duration: 0.42 }}
                 className="mt-10"
               >
-                <JobMatchLoadingExperience onComplete={() => onStepChange("job-analysis")} />
+                <JobMatchLoadingExperience onComplete={() => onStepChange(FLOW_STEPS.JOB_ANALYSIS)} />
               </motion.div>
-            ) : step === "job-analysis" ? (
+            ) : step === FLOW_STEPS.JOB_ANALYSIS ? (
               <motion.div
                 key="job-analysis"
                 initial={false}
@@ -154,11 +155,11 @@ export function FlowSection({
                 className="mt-8"
               >
                 <JobMatchAnalysisView 
-                  onNext={() => onStepChange("job-chat")} 
-                  onBack={() => onStepChange("completion")} 
+                  onNext={() => onStepChange(FLOW_STEPS.JOB_CHAT)}
+                  onBack={() => onStepChange(FLOW_STEPS.COMPLETION)}
                   />
               </motion.div>
-            ) : step === "job-chat" ? (
+            ) : step === FLOW_STEPS.JOB_CHAT ? (
               <motion.div
                 key="job-chat"
                 initial={false}
@@ -168,11 +169,11 @@ export function FlowSection({
                 className="mt-8"
               >
                 <JobMatchChatView 
-                  onNext={() => onStepChange("job-tracking")} 
-                  onBack={() => onStepChange("job-analysis")} 
+                  onNext={() => onStepChange(FLOW_STEPS.JOB_TRACKING)}
+                  onBack={() => onStepChange(FLOW_STEPS.JOB_ANALYSIS)}
                 />
               </motion.div>
-            ) : step === "job-tracking" ? (
+            ) : step === FLOW_STEPS.JOB_TRACKING ? (
               <motion.div
                 key="job-tracking"
                 initial={false}
@@ -182,11 +183,11 @@ export function FlowSection({
                 className="mt-8"
               >
                 <JobMatchTrackingView 
-                  onBack={() => onStepChange("job-chat")} 
-                  onResetAll={() => onStepChange("ready")} 
+                  onBack={() => onStepChange(FLOW_STEPS.JOB_CHAT)}
+                  onResetAll={() => onStepChange(FLOW_STEPS.READY)}
                 />
               </motion.div>
-            ) : step === "loading" ? (
+            ) : step === FLOW_STEPS.LOADING ? (
               <motion.div
                 key="loading"
                 initial={false}
@@ -206,7 +207,7 @@ export function FlowSection({
                 transition={{ duration: 0.42, ease: "easeOut" }}
                 className="mt-10"
               >
-                <UploadExperience step={step} onStartUpload={() => onStepChange("uploading")} onAnalyze={onAnalyze} />
+                <UploadExperience step={step} onStartUpload={() => onStepChange(FLOW_STEPS.UPLOADING)} onAnalyze={onAnalyze} />
               </motion.div>
             )}
           </AnimatePresence>
