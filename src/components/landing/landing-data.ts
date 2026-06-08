@@ -192,6 +192,7 @@ export const APP_FEATURES: AppFeature[] = [
     top: "64%",
     left: "50%",
     screenshot: "/screenshots/job-search-tracking-kanban.png",
+    mobileScreenshot: "/screenshots/mobile/job-search-tracking-kanban.png",
   },
   {
     id: FEATURE_IDS.WORK_JOURNAL,
